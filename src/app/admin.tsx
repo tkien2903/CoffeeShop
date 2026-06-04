@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -13,6 +14,9 @@ const stats = [
 const chartPoints = [36, 56, 28, 78, 96, 68, 118, 148, 126, 138];
 
 export default function AdminScreen() {
+  const params = useLocalSearchParams<{ username?: string }>();
+  const username = params.username ?? 'Admin';
+
   return (
     <ScreenShell active="home">
       <BrandHeader />
@@ -32,7 +36,7 @@ export default function AdminScreen() {
             />
           </View>
           <Text selectable style={{ flex: 1, color: palette.ink, fontSize: 13 }}>
-            Xin chào! Admin
+            Xin chào! {username}
           </Text>
           <Text selectable style={{ marginRight: -5, marginBottom: 22, fontSize: 12 }}>
             0

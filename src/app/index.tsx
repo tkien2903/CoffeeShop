@@ -4,19 +4,33 @@ import { ImageBackground, Pressable, ScrollView, Text, TextInput, View } from 'r
 import { Ionicons } from '@expo/vector-icons';
 
 import { CoffeeLogo, palette } from '@/components/coffee-ui';
+import { coffeeApi } from '@/services/api';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('123456');
+  const [username, setUsername] = useState('ghann');
+  const [password, setPassword] = useState('88888');
   const [secure, setSecure] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = () => {
-    if (username.trim().toLowerCase() === 'admin' && password === '123456') {
-      router.replace('/admin');
-      return;
+  const handleLogin = async () => {
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const admin = await coffeeApi.loginAdmin(username.trim(), password);
+      router.replace({
+        pathname: '/admin',
+        params: {
+          username: admin.username,
+          idAdmin: admin.idAdmin,
+        },
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Sai tài khoản hoặc mật khẩu');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    alert('Sai tài khoản hoặc mật khẩu');
   };
 
   return (
@@ -88,7 +102,14 @@ export default function LoginScreen() {
           </View>
         </View>
 
+        {errorMessage ? (
+          <Text selectable style={{ marginTop: 18, color: palette.red, fontSize: 12, fontWeight: '700' }}>
+            {errorMessage}
+          </Text>
+        ) : null}
+
         <Pressable
+          disabled={isSubmitting}
           onPress={handleLogin}
           style={({ pressed }) => ({
             marginTop: 46,
@@ -96,10 +117,10 @@ export default function LoginScreen() {
             backgroundColor: palette.ink,
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: pressed ? 0.82 : 1,
+            opacity: pressed || isSubmitting ? 0.7 : 1,
           })}>
           <Text selectable style={{ color: '#fff', fontFamily: 'serif', fontSize: 16, fontWeight: '900' }}>
-            Sign In
+            {isSubmitting ? 'Signing In...' : 'Sign In'}
           </Text>
         </Pressable>
 
