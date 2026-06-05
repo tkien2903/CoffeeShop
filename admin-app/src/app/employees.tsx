@@ -4,11 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { BrandHeader, ScreenShell, palette } from '@/components/coffee-ui';
 
 const employees = [
-  ['NT', 'Nguyễn Thị An', 'Thu ngân - Ca B · NV: 0012', 'Đang làm', '#dcecff'],
-  ['TH', 'Trần Văn Hùng', 'Pha chế - Ca A · NV: 0008', 'Đang làm', '#fff1d7'],
-  ['LM', 'Lê Thị Mai', 'Phục vụ - Ca A · NV: 0015', 'Đang làm', '#ddf4d5'],
-  ['PL', 'Phạm Quốc Long', 'Thu ngân - Ca C · NV: 0021', 'Nghỉ hôm nay', '#fde1ed'],
-  ['VO', 'Võ Thị Oanh', 'Quản lý - Ca B · NV: 0003', 'Đang làm', '#ece8df'],
+  ['TK', 'Nguyễn Trung Kiên', 'Quản Lý - Ca B · NV: 0012', 'Đang làm', '#dcecff'],
+  ['GH', 'Nguyễn Ngọc Gia Hân', 'Pha chế - Ca A · NV: 0008', 'Đang làm', '#fff1d7'],
+  ['MD', 'Phạm Minh Dũng', 'Phục vụ - Ca A · NV: 0015', 'Đang làm', '#ddf4d5'],
+  ['MA', 'Mai Ngọc Anh', 'Thu ngân - Ca C · NV: 0021', 'Nghỉ hôm nay', '#fde1ed'],
+  ['MĐ', 'Trần Phạm Minh Đức', 'Phục vụ - Ca B · NV: 0004', 'Đang làm', '#766743'],
+  ['HH', 'Đoàn Thị Bảo Trân', 'Thu Ngân - Ca B · NV: 0087', 'Đang làm', '#ece8df'],
+  ['HH', 'Trần Đình Huy Hoàng', 'Quản lý - Ca B · NV: 0003', 'Đang làm', '#ece8df'],
+  ['HH', 'Trần Đình Huy Hoàng', 'Quản lý - Ca B · NV: 0003', 'Đang làm', '#ece8df'],
+  ['HH', 'Trần Đình Huy Hoàng', 'Quản lý - Ca B · NV: 0003', 'Đang làm', '#ece8df'],
+  ['HH', 'Trần Đình Huy Hoàng', 'Quản lý - Ca B · NV: 0003', 'Đang làm', '#ece8df'],
 ];
 
 export default function EmployeesScreen() {
@@ -42,7 +47,7 @@ export default function EmployeesScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-              {['Tất cả (8)', 'Đang làm (5)', 'Nghỉ (3)'].map((item, index) => (
+              {['Tất cả (5)', 'Đang làm (4)', 'Nghỉ (1)'].map((item, index) => (
                 <Text
                   selectable
                   key={item}

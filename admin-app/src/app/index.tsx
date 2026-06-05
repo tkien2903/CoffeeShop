@@ -35,7 +35,7 @@ export default function LoginScreen() {
 
   return (
     <ImageBackground
-      source={require('@/assets/images/logo-glow.png')}
+      source={require('../../assets/images/coffee.png')}
       resizeMode="cover"
       style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView

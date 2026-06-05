@@ -131,7 +131,7 @@ function NavItem({
 export function CoffeeLogo({ size = 112 }: { size?: number }) {
   return (
     <Image
-      source={require('@/assets/images/coffee_shop.png')}
+      source={require('../../assets/images/coffee_shop.png')}
       contentFit="contain"
       style={{ width: size, height: size }}
     />

@@ -1,148 +1,139 @@
 # CoffeeShop
 
-Ứng dụng quản lý quán cà phê được xây dựng bằng Expo, React Native và Expo Router. Dự án hiện tập trung vào phần frontend/mock UI cho màn hình quản trị, dựa trên thiết kế mobile của The Coffee House.
+CoffeeShop là hệ thống quản lý quán cafe, hiện tập trung vào app quản lý nội bộ cho admin/quản lý/nhân viên. Customer web cho khách quét QR gọi món sẽ phát triển sau.
 
-## Tính năng hiện có
+## Cấu Trúc
 
-- Đăng nhập demo cho admin.
-- Trang tổng quan với thống kê đơn hàng và biểu đồ món bán chạy.
-- Danh sách sản phẩm theo danh mục.
-- Màn hình quản lý mã QR theo bàn.
-- Màn hình quản lý nhân viên.
-- Màn hình phân quyền truy cập theo vai trò.
-- Màn hình menu "Khác" để điều hướng tới các chức năng quản trị.
-
-## Công nghệ
-
-- Expo SDK 56
-- React 19
-- React Native 0.85
-- Expo Router
-- TypeScript
-- ESLint Expo config
-
-Theo tài liệu Expo SDK 56, môi trường khuyến nghị là Node.js 22.13.x trở lên.
-
-## Yêu cầu cài đặt
-
-Trước khi chạy dự án, cần cài:
-
-- Node.js 22.13.x hoặc mới hơn
-- npm
-- Expo Go trên điện thoại nếu muốn test bằng thiết bị thật
-
-Kiểm tra phiên bản Node:
-
-```bash
-node -v
+```text
+CoffeeShop/
+  backend/      Spring Boot API + MongoDB
+  admin-app/    Expo React Native app quản lý nội bộ
 ```
 
-## Cài đặt dự án
+## Công Nghệ
 
-Clone repository:
+- Backend: Java 21, Spring Boot 3.5, MongoDB
+- Admin app: Expo SDK 56, React 19, React Native 0.85, Expo Router, TypeScript
 
-```bash
-git clone https://github.com/tkien2903/CoffeeShop.git
-cd CoffeeShop
+Theo Expo SDK 56, Node.js nên dùng từ `22.13.x` trở lên.
+
+## Chạy Backend
+
+Backend dùng MongoDB local:
+
+```text
+mongodb://localhost:27017/tiemtra
 ```
+
+Chạy backend:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+Backend mặc định chạy tại:
+
+```text
+http://localhost:8080
+```
+
+Test nhanh:
+
+```powershell
+Invoke-WebRequest http://localhost:8080/api/mon-an
+```
+
+Database export mẫu nằm ở:
+
+```text
+backend/db_tiemtra/db_tiemtra
+```
+
+## Chạy Admin App
 
 Cài dependencies:
 
-```bash
+```powershell
+cd admin-app
 npm install
 ```
 
-## Chạy ứng dụng
+Chạy Expo:
 
-Chạy Expo development server:
-
-```bash
+```powershell
 npm start
 ```
 
-Sau đó có thể:
+Sau đó:
 
-- Quét QR bằng Expo Go để chạy trên điện thoại.
-- Nhấn `a` trong terminal để mở Android emulator.
-- Nhấn `i` trong terminal để mở iOS simulator nếu dùng macOS.
-- Nhấn `w` trong terminal để chạy bản web.
+- Nhấn `a` để mở Android emulator.
+- Nhấn `w` để chạy web.
+- Quét QR bằng Expo Go nếu chạy trên điện thoại thật.
 
-Chạy trực tiếp web:
+Nếu chạy trên điện thoại thật, không dùng `localhost`. Đặt API URL bằng IP LAN của máy đang chạy backend:
 
-```bash
-npm run web
+```powershell
+$env:EXPO_PUBLIC_API_BASE_URL="http://<IP-may-tinh>:8080"
+npm start
 ```
 
-Chạy Android:
-
-```bash
-npm run android
-```
-
-Chạy iOS:
-
-```bash
-npm run ios
-```
-
-## Tài khoản demo
+Android emulator dùng mặc định:
 
 ```text
-Username: admin
-Password: 123456
+http://10.0.2.2:8080
 ```
 
-## Kiểm tra code
+Web/iOS simulator dùng mặc định:
 
-Kiểm tra TypeScript:
+```text
+http://localhost:8080
+```
 
-```bash
+## Tài Khoản Demo
+
+Theo database mẫu:
+
+```text
+Username: ghann
+Password: 88888
+```
+
+Hoặc:
+
+```text
+Username: lhao
+Password: 12345
+```
+
+## Kiểm Tra Code
+
+Frontend:
+
+```powershell
+cd admin-app
 npx tsc --noEmit
-```
-
-Chạy lint:
-
-```bash
 npm run lint
 ```
 
-## Cấu trúc thư mục chính
+Backend:
 
-```text
-assets/
-  images/                 Hình ảnh, logo, icon dùng trong app
-
-src/
-  app/                    Các màn hình theo Expo Router
-    index.tsx             Màn hình đăng nhập
-    admin.tsx             Trang tổng quan admin
-    products.tsx          Trang sản phẩm
-    more.tsx              Menu chức năng khác
-    qr.tsx                Quản lý mã QR theo bàn
-    employees.tsx         Quản lý nhân viên
-    roles.tsx             Phân quyền truy cập
-
-  components/
-    coffee-ui.tsx         Component UI dùng chung cho giao diện coffee shop
-
-  hooks/                  Custom hooks
-  constants/              Theme và hằng số giao diện
+```powershell
+cd backend
+.\mvnw.cmd test
 ```
 
-## Ghi chú phát triển
+## API Đang Dùng
 
-- Dữ liệu hiện tại là dữ liệu mock để dựng giao diện trước.
-- Chưa kết nối backend/API.
-- Khi thêm package Expo SDK, nên dùng:
+- `POST /api/admin/login`
+- `GET /api/mon-an`
+- `GET /api/ban-an`
+- `GET /api/chi-tiet-don`
 
-```bash
-npx expo install <package-name>
-```
+Các màn quản lý nhân viên, phân quyền, kho, báo cáo chi tiết vẫn cần bổ sung API backend tương ứng để chuyển hoàn toàn từ mock sang dữ liệu động.
 
-- Không commit `node_modules/`.
-- Không đưa mật khẩu thật, API key hoặc file cấu hình nhạy cảm lên GitHub.
+## Ghi Chú
 
-## Nguồn tài liệu
-
-- Expo SDK 56: https://docs.expo.dev/versions/v56.0.0/
-- Expo Router: https://docs.expo.dev/router/introduction/
+- `website-source/` là thư mục source gốc được copy vào để tham chiếu, không commit lên GitHub.
+- `customer-web` chưa nằm trong scope hiện tại.
+- Không commit `node_modules/`, build output, file `.env`, mật khẩu thật hoặc API key.
