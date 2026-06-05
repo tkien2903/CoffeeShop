@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "CoffeeShop Admin",
+    "slug": "coffeeshop-admin",
+    "version": "1.0.0",
+    "scheme": "coffeeshop",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

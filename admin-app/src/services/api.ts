@@ -36,6 +36,55 @@ export type ChiTietDonHang = {
   };
 };
 
+export type Employee = {
+  id: string;
+  idNV: number;
+  hoVaTen: string;
+  username: string;
+  chucVu: string;
+  hinhThuc: string;
+  soDienThoai: string;
+  trangThai: string;
+};
+
+export type RolePermission = {
+  tenVaiTro: string;
+  soNguoi: number;
+  quyen: Record<string, boolean>;
+};
+
+export type InventoryItem = {
+  idMon: number;
+  tenMon: string;
+  loai: string;
+  soLuongTon: number;
+  mucCanhBao: number;
+  canhBao: boolean;
+  giaTriDonVi: number;
+};
+
+export type InventoryResponse = {
+  tongMatHang: number;
+  sapHet: number;
+  items: InventoryItem[];
+};
+
+export type ReportResponse = {
+  doanhThu: number;
+  doanhThuDaThanhToan: number;
+  soDon: number;
+  trungBinhDon: number;
+  choXuLy: number;
+  daXacNhan: number;
+  daHuy: number;
+  doanhThuTheoGio: Record<string, number>;
+  topSanPham: {
+    tenMon: string;
+    quantity: number;
+    revenue: number;
+  }[];
+};
+
 const DEFAULT_API_BASE_URL =
   process.env.EXPO_OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
 
@@ -110,5 +159,21 @@ export const coffeeApi = {
 
   getChiTietDonHang() {
     return request<ChiTietDonHang[]>('/api/chi-tiet-don');
+  },
+
+  getEmployees() {
+    return request<Employee[]>('/api/management/nhan-vien');
+  },
+
+  getRoles() {
+    return request<RolePermission[]>('/api/management/phan-quyen');
+  },
+
+  getInventory() {
+    return request<InventoryResponse>('/api/management/kho');
+  },
+
+  getReport() {
+    return request<ReportResponse>('/api/management/bao-cao');
   },
 };

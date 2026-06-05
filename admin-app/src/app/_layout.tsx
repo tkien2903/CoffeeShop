@@ -13,6 +13,8 @@ export default function TabLayout() {
         <Stack.Screen name="qr" />
         <Stack.Screen name="employees" />
         <Stack.Screen name="roles" />
+        <Stack.Screen name="reports" />
+        <Stack.Screen name="inventory" />
       </Stack>
     </ThemeProvider>
   );

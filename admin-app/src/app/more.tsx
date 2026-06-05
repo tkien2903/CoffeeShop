@@ -7,7 +7,7 @@ import { BrandHeader, ScreenShell, palette } from '@/components/coffee-ui';
 type MoreMenuItem = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap | keyof typeof MaterialCommunityIcons.glyphMap;
-  href: '/employees' | '/qr' | '/roles' | '/admin';
+  href: '/employees' | '/qr' | '/roles' | '/reports' | '/inventory' | '/admin';
   material?: boolean;
 };
 
@@ -15,8 +15,8 @@ const menu: MoreMenuItem[] = [
   { label: 'Quản lý nhân viên', icon: 'person-outline', href: '/employees' },
   { label: 'Quản lý mã QR', icon: 'qrcode', href: '/qr', material: true },
   { label: 'Phân quyền truy cập', icon: 'pencil-ruler', href: '/roles', material: true },
-  { label: 'Báo cáo doanh thu', icon: 'book-open-variant', href: '/admin', material: true },
-  { label: 'Quản lý kho', icon: 'settings-outline', href: '/admin' },
+  { label: 'Báo cáo doanh thu', icon: 'book-open-variant', href: '/reports', material: true },
+  { label: 'Quản lý kho', icon: 'settings-outline', href: '/inventory' },
   { label: 'Lịch sử đơn hàng', icon: 'file-document-edit-outline', href: '/admin', material: true },
 ];
 

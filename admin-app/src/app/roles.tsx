@@ -1,33 +1,42 @@
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { BrandHeader, ScreenShell, palette } from '@/components/coffee-ui';
-
-const roles = [
-  {
-    title: 'Admin',
-    meta: '2 người · Tất cả quyền',
-    icon: 'crown-outline',
-    rows: ['Quản lý nhân viên', 'Báo cáo doanh thu', 'Quản lý mã QR', 'Cài đặt hệ thống'],
-    enabled: [true, true, true, true],
-  },
-  {
-    title: 'Quản lý ca',
-    meta: '5 người',
-    icon: 'account-badge-outline',
-    rows: ['Quản lý nhân viên', 'Báo cáo doanh thu', 'Quản lý mã QR', 'Cài đặt hệ thống'],
-    enabled: [true, true, false, false],
-  },
-  {
-    title: 'Nhân viên',
-    meta: '12 người',
-    icon: 'account-outline',
-    rows: ['Quản lý nhân viên', 'Báo cáo doanh thu', 'Xem đơn hàng', 'Quản lý mã QR'],
-    enabled: [false, false, true, false],
-  },
-];
+import { RolePermission, coffeeApi } from '@/services/api';
 
 export default function RolesScreen() {
+  const [roles, setRoles] = useState<RolePermission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    coffeeApi
+      .getRoles()
+      .then((data) => {
+        if (isMounted) {
+          setRoles(data);
+          setErrorMessage('');
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Không tải được phân quyền');
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <ScreenShell active="more">
       <BrandHeader />
@@ -55,54 +64,63 @@ export default function RolesScreen() {
           </Pressable>
         </View>
 
-        {roles.map((role) => (
-          <View
-            key={role.title}
-            style={{
-              borderWidth: 1,
-              borderColor: '#e2e0dc',
-              borderRadius: 8,
-              overflow: 'hidden',
-              backgroundColor: '#fff',
-            }}>
-            <View
-              style={{
-                height: 38,
-                paddingHorizontal: 12,
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#f4f1e9',
-              }}>
-              <MaterialCommunityIcons name={role.icon as keyof typeof MaterialCommunityIcons.glyphMap} size={15} color={palette.orange} />
-              <Text selectable style={{ flex: 1, marginLeft: 8, color: palette.ink, fontWeight: '900', fontSize: 13 }}>
-                {role.title}
-              </Text>
-              <Text selectable style={{ color: palette.ink, fontSize: 11 }}>
-                {role.meta}
-              </Text>
-            </View>
-            {role.rows.map((row, index) => (
-              <View
-                key={row}
-                style={{
-                  minHeight: 32,
-                  paddingHorizontal: 13,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  borderTopWidth: 1,
-                  borderColor: '#eeeeee',
-                }}>
-                <PermissionIcon label={row} />
-                <Text selectable style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#20202a' }}>
-                  {row}
-                </Text>
-                <SwitchPill on={role.enabled[index]} />
-              </View>
-            ))}
-          </View>
-        ))}
+        {isLoading ? (
+          <StatusText>Đang tải phân quyền...</StatusText>
+        ) : errorMessage ? (
+          <StatusText tone="error">{errorMessage}</StatusText>
+        ) : (
+          roles.map((role) => <RoleCard key={role.tenVaiTro} role={role} />)
+        )}
       </View>
     </ScreenShell>
+  );
+}
+
+function RoleCard({ role }: { role: RolePermission }) {
+  return (
+    <View
+      style={{
+        borderWidth: 1,
+        borderColor: '#e2e0dc',
+        borderRadius: 8,
+        overflow: 'hidden',
+        backgroundColor: '#fff',
+      }}>
+      <View
+        style={{
+          height: 38,
+          paddingHorizontal: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#f4f1e9',
+        }}>
+        <MaterialCommunityIcons name={role.tenVaiTro === 'Admin' ? 'crown-outline' : 'account-badge-outline'} size={15} color={palette.orange} />
+        <Text selectable style={{ flex: 1, marginLeft: 8, color: palette.ink, fontWeight: '900', fontSize: 13 }}>
+          {role.tenVaiTro}
+        </Text>
+        <Text selectable style={{ color: palette.ink, fontSize: 11 }}>
+          {role.soNguoi} người
+        </Text>
+      </View>
+      {Object.entries(role.quyen).map(([permission, enabled]) => (
+        <View
+          key={permission}
+          style={{
+            minHeight: 32,
+            paddingHorizontal: 13,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderTopWidth: 1,
+            borderColor: '#eeeeee',
+          }}>
+          <PermissionIcon label={permission} />
+          <Text selectable style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#20202a' }}>
+            {permission}
+          </Text>
+          <SwitchPill on={enabled} />
+        </View>
+      ))}
+    </View>
   );
 }
 
@@ -118,6 +136,9 @@ function PermissionIcon({ label }: { label: string }) {
   }
   if (label.includes('hệ thống')) {
     return <Ionicons name="settings-outline" size={14} color="#555" />;
+  }
+  if (label.includes('kho')) {
+    return <Ionicons name="cube-outline" size={14} color="#555" />;
   }
   return <Ionicons name="people-outline" size={14} color="#555" />;
 }
@@ -135,5 +156,13 @@ function SwitchPill({ on }: { on: boolean }) {
       }}>
       <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#fff' }} />
     </View>
+  );
+}
+
+function StatusText({ children, tone = 'default' }: React.PropsWithChildren<{ tone?: 'default' | 'error' }>) {
+  return (
+    <Text selectable style={{ paddingVertical: 18, color: tone === 'error' ? palette.red : palette.muted, fontWeight: '700' }}>
+      {children}
+    </Text>
   );
 }
