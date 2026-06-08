@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { CoffeeLogo, palette } from '@/components/coffee-ui';
 import { coffeeApi } from '@/services/api';
+import { setCurrentUser, homeRouteFor } from '@/services/session';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('ghann');
@@ -18,14 +19,10 @@ export default function LoginScreen() {
     setIsSubmitting(true);
 
     try {
-      const admin = await coffeeApi.loginAdmin(username.trim(), password);
-      router.replace({
-        pathname: '/admin',
-        params: {
-          username: admin.username,
-          idAdmin: admin.idAdmin,
-        },
-      });
+      const user = await coffeeApi.login(username.trim(), password);
+      setCurrentUser(user);
+      const route = homeRouteFor(user);
+      router.replace(route);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Sai tài khoản hoặc mật khẩu');
     } finally {

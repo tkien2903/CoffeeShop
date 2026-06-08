@@ -37,6 +37,33 @@ export default function RolesScreen() {
     };
   }, []);
 
+  const handleTogglePermission = async (roleName: string, permissionName: string, currentEnabled: boolean) => {
+    try {
+      // Optimistic update of state
+      setRoles((prevRoles) =>
+        prevRoles.map((r) => {
+          if (r.tenVaiTro === roleName) {
+            return {
+              ...r,
+              quyen: {
+                ...r.quyen,
+                [permissionName]: !currentEnabled,
+              },
+            };
+          }
+          return r;
+        })
+      );
+
+      // Call API
+      await coffeeApi.updatePermission(roleName, permissionName, !currentEnabled);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Không cập nhật được phân quyền');
+      // Revert state by fetching from backend again
+      coffeeApi.getRoles().then((data) => setRoles(data));
+    }
+  };
+
   return (
     <ScreenShell active="more">
       <BrandHeader />
@@ -69,14 +96,20 @@ export default function RolesScreen() {
         ) : errorMessage ? (
           <StatusText tone="error">{errorMessage}</StatusText>
         ) : (
-          roles.map((role) => <RoleCard key={role.tenVaiTro} role={role} />)
+          roles.map((role) => (
+            <RoleCard
+              key={role.tenVaiTro}
+              role={role}
+              onToggle={(permission, enabled) => handleTogglePermission(role.tenVaiTro, permission, enabled)}
+            />
+          ))
         )}
       </View>
     </ScreenShell>
   );
 }
 
-function RoleCard({ role }: { role: RolePermission }) {
+function RoleCard({ role, onToggle }: { role: RolePermission; onToggle: (permission: string, enabled: boolean) => void }) {
   return (
     <View
       style={{
@@ -103,22 +136,24 @@ function RoleCard({ role }: { role: RolePermission }) {
         </Text>
       </View>
       {Object.entries(role.quyen).map(([permission, enabled]) => (
-        <View
+        <Pressable
           key={permission}
-          style={{
+          onPress={() => onToggle(permission, enabled)}
+          style={({ pressed }) => ({
             minHeight: 32,
             paddingHorizontal: 13,
             flexDirection: 'row',
             alignItems: 'center',
             borderTopWidth: 1,
             borderColor: '#eeeeee',
-          }}>
+            backgroundColor: pressed ? '#fdfdfd' : '#fff',
+          })}>
           <PermissionIcon label={permission} />
           <Text selectable style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#20202a' }}>
             {permission}
           </Text>
           <SwitchPill on={enabled} />
-        </View>
+        </Pressable>
       ))}
     </View>
   );

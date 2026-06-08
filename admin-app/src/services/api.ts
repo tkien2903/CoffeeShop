@@ -5,6 +5,19 @@ export type AdminLoginResponse = {
   message?: string;
 };
 
+export type AuthUser = {
+  id: string;
+  employeeCode: number;
+  username: string;
+  displayName: string;
+  rawRole: string;
+  role: 'Admin' | 'Thu ngân' | 'Phục vụ' | string;
+  workType: string;
+  shift: string;
+  loginAt: string;
+  permissions: Record<string, boolean>;
+};
+
 export type MonAn = {
   _id?: string;
   idMon: number;
@@ -137,6 +150,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const coffeeApi = {
+  login(username: string, matKhau: string) {
+    const body = new URLSearchParams({ username, matKhau });
+
+    return request<AuthUser>('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+  },
+
   loginAdmin(username: string, matKhau: string) {
     const body = new URLSearchParams({ username, matKhau });
 
@@ -167,6 +192,16 @@ export const coffeeApi = {
 
   getRoles() {
     return request<RolePermission[]>('/api/management/phan-quyen');
+  },
+
+  updatePermission(tenVaiTro: string, tenQuyen: string, enabled: boolean) {
+    return request<RolePermission>('/api/management/phan-quyen', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tenVaiTro, tenQuyen, enabled }),
+    });
   },
 
   getInventory() {

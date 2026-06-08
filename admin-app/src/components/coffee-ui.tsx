@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
+import { Link, Href } from 'expo-router';
 import { PropsWithChildren } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { homeRouteFor } from '@/services/session';
 
 export const palette = {
   ink: '#302d43',
@@ -20,7 +21,7 @@ export const palette = {
   brown: '#796762',
 };
 
-type AppRoute = '/admin' | '/products' | '/more';
+type AppRoute = Href;
 
 export function BrandHeader({ underline = true }: { underline?: boolean }) {
   return (
@@ -72,6 +73,7 @@ export function ScreenShell({
 }
 
 function BottomNav({ active, bottom }: { active: 'home' | 'products' | 'orders' | 'more'; bottom: number }) {
+  const homePath = homeRouteFor();
   return (
     <View
       style={{
@@ -84,9 +86,9 @@ function BottomNav({ active, bottom }: { active: 'home' | 'products' | 'orders' 
         flexDirection: 'row',
         backgroundColor: palette.orange,
       }}>
-      <NavItem href="/admin" label="Trang chủ" active={active === 'home'} icon="home-outline" />
+      <NavItem href={homePath} label="Trang chủ" active={active === 'home'} icon="home-outline" />
       <NavItem href="/products" label="Sản phẩm" active={active === 'products'} materialIcon="book-open-page-variant-outline" />
-      <NavItem href="/admin" label="Đơn hàng" active={active === 'orders'} materialIcon="coffee-outline" />
+      <NavItem href={homePath} label="Đơn hàng" active={active === 'orders'} materialIcon="coffee-outline" />
       <NavItem href="/more" label="Khác" active={active === 'more'} icon="menu-outline" />
     </View>
   );

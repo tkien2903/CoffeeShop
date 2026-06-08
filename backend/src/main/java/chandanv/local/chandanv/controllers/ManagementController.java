@@ -3,7 +3,6 @@ package chandanv.local.chandanv.controllers;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -14,8 +13,12 @@ import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,20 +51,46 @@ public class ManagementController {
                         LinkedHashMap::new,
                         Collectors.counting()));
 
-        List<RoleDto> roles = new ArrayList<>();
-        roles.add(new RoleDto("Admin", 2, permissions(true, true, true, true, true)));
+        ensureDefaultPermissions(counts);
 
-        counts.forEach((role, count) -> {
-            boolean manager = role.toLowerCase().contains("quản") || role.toLowerCase().contains("quan");
-            boolean cashier = role.toLowerCase().contains("thu");
+        Map<String, Integer> peopleCount = new LinkedHashMap<>();
+        peopleCount.put("Admin", 2);
+        counts.forEach((role, count) -> peopleCount.put(roleName(role), count.intValue()));
 
-            roles.add(new RoleDto(
-                    role,
-                    count.intValue(),
-                    permissions(manager, manager || cashier, true, manager, manager)));
-        });
+        return mongoTemplate.findAll(Document.class, "phan_quyen")
+                .stream()
+                .map(doc -> new RoleDto(
+                        stringValue(doc, "tenVaiTro"),
+                        peopleCount.getOrDefault(stringValue(doc, "tenVaiTro"), 0),
+                        permissionMap(doc)))
+                .sorted(Comparator.comparing(RoleDto::tenVaiTro))
+                .toList();
+    }
 
-        return roles;
+    @PutMapping("/phan-quyen")
+    public RoleDto updatePermission(@RequestBody PermissionUpdateRequest request) {
+        ensureDefaultPermissions(new LinkedHashMap<>());
+
+        Document role = mongoTemplate.findOne(
+                Query.query(Criteria.where("tenVaiTro").is(request.tenVaiTro())),
+                Document.class,
+                "phan_quyen");
+
+        if (role == null) {
+            role = new Document("tenVaiTro", request.tenVaiTro())
+                    .append("quyen", defaultPermissions(request.tenVaiTro()));
+        }
+
+        Document permissions = role.get("quyen", Document.class);
+        if (permissions == null) {
+            permissions = new Document(defaultPermissions(request.tenVaiTro()));
+        }
+
+        permissions.put(request.tenQuyen(), request.enabled());
+        role.put("quyen", permissions);
+        mongoTemplate.save(role, "phan_quyen");
+
+        return new RoleDto(request.tenVaiTro(), 0, permissionMap(role));
     }
 
     @GetMapping("/kho")
@@ -189,19 +218,74 @@ public class ManagementController {
                 "Đang làm");
     }
 
-    private Map<String, Boolean> permissions(boolean employees, boolean reports, boolean orders, boolean inventory, boolean settings) {
+    private Map<String, Boolean> permissions(boolean employees, boolean reports, boolean orders, boolean inventory, boolean qr, boolean settings) {
         Map<String, Boolean> permissions = new LinkedHashMap<>();
         permissions.put("Quản lý nhân viên", employees);
         permissions.put("Báo cáo doanh thu", reports);
         permissions.put("Xem đơn hàng", orders);
         permissions.put("Quản lý kho", inventory);
+        permissions.put("Quản lý mã QR", qr);
         permissions.put("Cài đặt hệ thống", settings);
         return permissions;
+    }
+
+    private void ensureDefaultPermissions(Map<String, Long> counts) {
+        upsertDefaultPermission("Admin");
+
+        if (counts.isEmpty()) {
+            upsertDefaultPermission("Thu ngân");
+            upsertDefaultPermission("Phục vụ");
+            return;
+        }
+
+        counts.keySet().forEach(role -> upsertDefaultPermission(roleName(role)));
+    }
+
+    private void upsertDefaultPermission(String role) {
+        Document existing = mongoTemplate.findOne(
+                Query.query(Criteria.where("tenVaiTro").is(role)),
+                Document.class,
+                "phan_quyen");
+
+        if (existing == null) {
+            mongoTemplate.save(
+                    new Document("tenVaiTro", role).append("quyen", defaultPermissions(role)),
+                    "phan_quyen");
+        }
+    }
+
+    private Map<String, Boolean> defaultPermissions(String role) {
+        String normalized = role == null ? "" : role.toLowerCase();
+        boolean admin = normalized.contains("admin") || normalized.contains("quản") || normalized.contains("quan");
+        boolean cashier = normalized.contains("thu");
+        return permissions(admin, admin || cashier, true, admin, admin, admin);
+    }
+
+    private Map<String, Boolean> permissionMap(Document role) {
+        Object value = role.get("quyen");
+        if (value instanceof Document doc) {
+            Map<String, Boolean> result = new LinkedHashMap<>();
+            doc.forEach((key, enabled) -> result.put(key, Boolean.TRUE.equals(enabled)));
+            return result;
+        }
+
+        return defaultPermissions(stringValue(role, "tenVaiTro"));
     }
 
     private String roleName(String chucVu) {
         if (chucVu == null || chucVu.isBlank()) {
             return "Nhân viên";
+        }
+
+        String normalized = chucVu.trim().toLowerCase();
+        if (normalized.contains("admin") || normalized.contains("quản") || normalized.contains("quan")) {
+            return "Admin";
+        }
+        if (normalized.contains("thu")) {
+            return "Thu ngân";
+        }
+        if (normalized.contains("phục") || normalized.contains("phuc")) {
+            return "Phục vụ";
         }
 
         return chucVu;
@@ -239,7 +323,7 @@ public class ManagementController {
 
         if (value instanceof String text) {
             try {
-                return Integer.parseInt(text);
+                return Integer.parseInt(text.replaceAll("[^0-9]", ""));
             } catch (NumberFormatException ignored) {
                 return fallback;
             }
@@ -281,6 +365,12 @@ public class ManagementController {
             String tenVaiTro,
             int soNguoi,
             Map<String, Boolean> quyen) {
+    }
+
+    public record PermissionUpdateRequest(
+            String tenVaiTro,
+            String tenQuyen,
+            boolean enabled) {
     }
 
     public record InventoryItemDto(

@@ -125,12 +125,30 @@ cd backend
 
 ## API Đang Dùng
 
-- `POST /api/admin/login`
-- `GET /api/mon-an`
-- `GET /api/ban-an`
-- `GET /api/chi-tiet-don`
+- `POST /api/auth/login` (Đăng nhập và xác thực chung cho Admin & Nhân viên)
+- `GET /api/mon-an` (Xem danh sách sản phẩm/món ăn)
+- `GET /api/ban-an` (Xem danh sách bàn ăn và trạng thái)
+- `GET /api/chi-tiet-don` (Xem chi tiết hóa đơn/đơn hàng)
+- `GET /api/management/nhan-vien` (Danh sách nhân viên)
+- `GET /api/management/phan-quyen` (Danh sách quyền hạn các vai trò)
+- `PUT /api/management/phan-quyen` (Cập nhật quyền hạn cho vai trò)
+- `GET /api/management/kho` (Theo dõi mức tồn kho nguyên liệu)
+- `GET /api/management/bao-cao` (Báo cáo doanh thu chi tiết)
 
-Các màn quản lý nhân viên, phân quyền, kho, báo cáo chi tiết vẫn cần bổ sung API backend tương ứng để chuyển hoàn toàn từ mock sang dữ liệu động.
+## Các Cập Nhật Mới (08/06/2026)
+
+1. **Đăng nhập & Điều hướng theo vai trò (Role-based Routing)**:
+   - Sử dụng API đăng nhập chung `/api/auth/login` cho cả Admin và nhân viên.
+   - Định tuyến động dựa trên vai trò người dùng: Admin vào `/admin`, Thu ngân vào `/cashier`, Phục vụ vào `/staff`.
+2. **Đăng xuất hoàn chỉnh**:
+   - Nút đăng xuất xóa sạch phiên làm việc (`clearCurrentUser()`) và chuyển hướng về màn hình đăng nhập `/` để đăng nhập bằng tài khoản khác.
+3. **Màn hình Thu ngân (`/cashier`) & Phục vụ (`/staff`) động**:
+   - Hiển thị tên động, ca trực, mã nhân viên động lấy trực tiếp từ MongoDB.
+   - Đồng hồ đo thời gian làm việc thực tế (giờ/phút) chạy tăng động trong suốt ca kể từ lúc đăng nhập.
+   - Tải sơ đồ bàn ăn và trạng thái phục vụ thời gian thực.
+4. **Phân quyền động thời gian thực**:
+   - Tích hợp quyền năng tương tác cho màn hình Phân quyền (`/roles`), gửi dữ liệu thay đổi quyền của từng vai trò trực tiếp lên backend.
+   - Các màn hình chức năng của nhân viên (như Báo cáo doanh thu, Quản lý kho, Mã QR) tự động khóa (hiển thị khóa 🔒) hoặc ẩn đi nếu Admin tắt quyền tương ứng của vai trò đó.
 
 ## Ghi Chú
 

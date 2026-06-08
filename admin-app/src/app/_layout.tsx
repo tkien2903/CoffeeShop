@@ -8,6 +8,8 @@ export default function TabLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="admin" />
+        <Stack.Screen name="cashier" />
+        <Stack.Screen name="staff" />
         <Stack.Screen name="products" />
         <Stack.Screen name="more" />
         <Stack.Screen name="qr" />
