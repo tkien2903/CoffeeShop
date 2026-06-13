@@ -13,7 +13,9 @@ public class MonAn {
     private String TenMon;
     private int idLoai;
     private int Gia;
-    private String image; 
+    private String image;
+    private Integer soLuongTon;
+    private Integer mucCanhBao;
 
     public String get_id() {
         return _id;
@@ -62,5 +64,21 @@ public class MonAn {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public Integer getSoLuongTon() {
+        return soLuongTon;
+    }
+
+    public void setSoLuongTon(Integer soLuongTon) {
+        this.soLuongTon = soLuongTon;
+    }
+
+    public Integer getMucCanhBao() {
+        return mucCanhBao;
+    }
+
+    public void setMucCanhBao(Integer mucCanhBao) {
+        this.mucCanhBao = mucCanhBao;
     }
 }

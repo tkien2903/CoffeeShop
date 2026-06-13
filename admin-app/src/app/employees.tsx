@@ -1,42 +1,71 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { FormActions, FormField, FormInput, FormSheet } from '@/components/form-sheet';
 import { BrandHeader, ScreenShell, palette } from '@/components/coffee-ui';
-import { Employee, coffeeApi } from '@/services/api';
+import { Employee, EmployeeInput, coffeeApi } from '@/services/api';
+import { useFormDraft } from '@/hooks/use-form-draft';
+import { canAccess } from '@/services/session';
+
+const emptyEmployee: EmployeeInput = {
+  hoVaTen: '',
+  username: '',
+  chucVu: 'Phục vụ',
+  hinhThuc: 'FULLTIME',
+  soDienThoai: '',
+  matKhau: '',
+  caLam: 'Ca B',
+};
+
+const chucVuOptions = ['Phục vụ', 'Thu ngân', 'Quản lý Cửa Hàng','Pha chế', 'Kho'];
+const hinhThucOptions = ['FULLTIME', 'PARTTIME'];
 
 export default function EmployeesScreen() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selected, setSelected] = useState<Employee | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const canManage = canAccess('Quản lý nhân viên');
+
+  const addDraft = useFormDraft('employee-add', emptyEmployee);
+  const editDraft = useFormDraft('employee-edit', emptyEmployee);
+
+  const loadEmployees = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await coffeeApi.getEmployees();
+      setEmployees(data);
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Không tải được nhân viên');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    loadEmployees();
+  }, [loadEmployees]);
 
-    coffeeApi
-      .getEmployees()
-      .then((data) => {
-        if (isMounted) {
-          setEmployees(data);
-          setErrorMessage('');
-        }
-      })
-      .catch((error) => {
-        if (isMounted) {
-          setErrorMessage(error instanceof Error ? error.message : 'Không tải được nhân viên');
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    editDraft.setValues({
+      hoVaTen: selected.hoVaTen,
+      username: selected.username,
+      chucVu: selected.chucVu,
+      hinhThuc: selected.hinhThuc,
+      soDienThoai: selected.soDienThoai,
+      matKhau: '',
+      caLam: selected.caLam ?? 'Ca B',
+    });
+  }, [selected?.id]);
 
   const visibleEmployees = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -54,6 +83,67 @@ export default function EmployeesScreen() {
 
   const working = employees.filter((employee) => employee.trangThai === 'Đang làm').length;
 
+  const handleCreate = async () => {
+    if (!addDraft.values.matKhau?.trim()) {
+      Alert.alert('Thiếu thông tin', 'Mật khẩu là bắt buộc khi thêm nhân viên mới.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await coffeeApi.createEmployee(addDraft.values);
+      await addDraft.clearDraft();
+      setShowAdd(false);
+      await loadEmployees();
+    } catch (error) {
+      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không thêm được nhân viên');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selected) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await coffeeApi.updateEmployee(selected.id, editDraft.values);
+      await editDraft.clearDraft();
+      setSelected(null);
+      await loadEmployees();
+    } catch (error) {
+      Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không cập nhật được nhân viên');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!selected) {
+      return;
+    }
+
+    Alert.alert('Xóa nhân viên', `Xóa ${selected.hoVaTen}?`, [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await coffeeApi.deleteEmployee(selected.id);
+            await editDraft.clearDraft();
+            setSelected(null);
+            await loadEmployees();
+          } catch (error) {
+            Alert.alert('Lỗi', error instanceof Error ? error.message : 'Không xóa được nhân viên');
+          }
+        },
+      },
+    ]);
+  };
+
   return (
     <ScreenShell active="more">
       <View style={{ padding: 8, backgroundColor: '#fff' }}>
@@ -65,22 +155,21 @@ export default function EmployeesScreen() {
               <Text selectable style={{ flex: 1, marginLeft: 7, fontWeight: '800', fontSize: 14 }}>
                 Quản lý nhân viên
               </Text>
-              {[0, 1, 2].map((item) => (
+              {canManage ? (
                 <Pressable
-                  key={item}
+                  onPress={() => setShowAdd(true)}
                   style={{
                     width: 30,
                     height: 27,
                     borderWidth: 1,
                     borderColor: '#d0d0d0',
                     borderRadius: 7,
-                    marginLeft: 8,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}>
-                  {item === 1 && <Ionicons name="create-outline" size={15} color="#4a4a4a" />}
+                  <Ionicons name="add" size={18} color="#4a4a4a" />
                 </Pressable>
-              ))}
+              ) : null}
             </View>
 
             <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
@@ -120,23 +209,6 @@ export default function EmployeesScreen() {
                   style={{ flex: 1, paddingVertical: 0, paddingLeft: 7, fontSize: 11 }}
                 />
               </View>
-              <Pressable
-                style={{
-                  height: 27,
-                  paddingHorizontal: 11,
-                  borderWidth: 1,
-                  borderColor: '#ded9cf',
-                  borderRadius: 6,
-                  backgroundColor: '#fff',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}>
-                <Ionicons name="filter-outline" size={12} color="#333" />
-                <Text selectable style={{ fontSize: 11 }}>
-                  Lọc
-                </Text>
-              </Pressable>
             </View>
 
             {isLoading ? (
@@ -146,22 +218,146 @@ export default function EmployeesScreen() {
             ) : (
               <View>
                 {visibleEmployees.map((employee, index) => (
-                  <EmployeeRow key={employee.id || employee.idNV} employee={employee} color={avatarColors[index % avatarColors.length]} />
+                  <EmployeeRow
+                    key={employee.id || employee.idNV}
+                    employee={employee}
+                    color={avatarColors[index % avatarColors.length]}
+                    onPress={() => setSelected(employee)}
+                  />
                 ))}
               </View>
             )}
           </View>
         </View>
       </View>
+
+      <FormSheet visible={showAdd} title="Thêm nhân viên" onClose={() => setShowAdd(false)}>
+        <EmployeeForm
+          values={addDraft.values}
+          onChange={addDraft.setField}
+          showPassword
+          passwordRequired
+        />
+        <FormActions primaryLabel={isSaving ? 'Đang lưu...' : 'Lưu nhân viên'} onPrimary={handleCreate} disabled={isSaving} />
+      </FormSheet>
+
+      <FormSheet
+        visible={selected != null}
+        title={selected ? `NV ${String(selected.idNV).padStart(4, '0')} · ${selected.hoVaTen}` : 'Chi tiết nhân viên'}
+        onClose={() => setSelected(null)}>
+        {selected ? (
+          <>
+            <View style={{ gap: 6, marginBottom: 8 }}>
+              <DetailLine label="Mã NV" value={String(selected.idNV).padStart(4, '0')} />
+              <DetailLine label="Trạng thái" value={selected.trangThai} />
+            </View>
+            <EmployeeForm values={editDraft.values} onChange={editDraft.setField} showPassword passwordRequired={false} />
+            {canManage ? (
+              <FormActions
+                primaryLabel={isSaving ? 'Đang lưu...' : 'Cập nhật'}
+                onPrimary={handleUpdate}
+                dangerLabel="Xóa nhân viên"
+                onDanger={handleDelete}
+                disabled={isSaving}
+              />
+            ) : null}
+          </>
+        ) : null}
+      </FormSheet>
     </ScreenShell>
+  );
+}
+
+function EmployeeForm({
+  values,
+  onChange,
+  showPassword,
+  passwordRequired,
+}: {
+  values: EmployeeInput;
+  onChange: <K extends keyof EmployeeInput>(field: K, value: EmployeeInput[K]) => void;
+  showPassword: boolean;
+  passwordRequired: boolean;
+}) {
+  return (
+    <>
+      <FormField label="Họ và tên">
+        <FormInput value={values.hoVaTen} onChangeText={(text) => onChange('hoVaTen', text)} />
+      </FormField>
+      <FormField label="Username">
+        <FormInput autoCapitalize="none" value={values.username} onChangeText={(text) => onChange('username', text)} />
+      </FormField>
+      <FormField label="Chức vụ">
+        <OptionRow options={chucVuOptions} value={values.chucVu} onSelect={(value) => onChange('chucVu', value)} />
+      </FormField>
+      <FormField label="Hình thức">
+        <OptionRow options={hinhThucOptions} value={values.hinhThuc} onSelect={(value) => onChange('hinhThuc', value)} />
+      </FormField>
+      <FormField label="Số điện thoại">
+        <FormInput keyboardType="phone-pad" value={values.soDienThoai} onChangeText={(text) => onChange('soDienThoai', text)} />
+      </FormField>
+      <FormField label="Ca làm">
+        <FormInput value={values.caLam ?? ''} onChangeText={(text) => onChange('caLam', text)} />
+      </FormField>
+      {showPassword ? (
+        <FormField label={passwordRequired ? 'Mật khẩu' : 'Mật khẩu mới (để trống nếu giữ nguyên)'}>
+          <FormInput secureTextEntry value={values.matKhau ?? ''} onChangeText={(text) => onChange('matKhau', text)} />
+        </FormField>
+      ) : null}
+    </>
+  );
+}
+
+function OptionRow({ options, value, onSelect }: { options: string[]; value: string; onSelect: (value: string) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {options.map((option) => {
+        const active = option === value;
+        return (
+          <Pressable
+            key={option}
+            onPress={() => onSelect(option)}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+              borderRadius: 8,
+              borderWidth: 1,
+              borderColor: active ? palette.orange : '#ded9cf',
+              backgroundColor: active ? '#fff6e8' : '#fff',
+            }}>
+            <Text selectable style={{ fontSize: 12, fontWeight: active ? '900' : '600', color: palette.ink }}>
+              {option}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function DetailLine({ label, value }: { label: string; value: string }) {
+  return (
+    <Text selectable style={{ fontSize: 12, color: palette.muted }}>
+      <Text style={{ fontWeight: '800' }}>{label}: </Text>
+      {value}
+    </Text>
   );
 }
 
 const avatarColors = ['#dcecff', '#fff1d7', '#ddf4d5', '#fde1ed', '#ece8df', '#e8e1cb'];
 
-function EmployeeRow({ employee, color }: { employee: Employee; color: string }) {
+function EmployeeRow({
+  employee,
+  color,
+  onPress,
+}: {
+  employee: Employee;
+  color: string;
+  onPress: () => void;
+}) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       style={{
         minHeight: 57,
         flexDirection: 'row',
@@ -204,7 +400,8 @@ function EmployeeRow({ employee, color }: { employee: Employee; color: string })
           {employee.trangThai}
         </Text>
       </View>
-    </View>
+      <Ionicons name="chevron-forward" size={16} color="#bbb" style={{ marginLeft: 6 }} />
+    </Pressable>
   );
 }
 

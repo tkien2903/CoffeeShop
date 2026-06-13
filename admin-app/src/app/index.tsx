@@ -20,7 +20,7 @@ export default function LoginScreen() {
 
     try {
       const user = await coffeeApi.login(username.trim(), password);
-      setCurrentUser(user);
+      await setCurrentUser(user);
       const route = homeRouteFor(user);
       router.replace(route);
     } catch (error) {

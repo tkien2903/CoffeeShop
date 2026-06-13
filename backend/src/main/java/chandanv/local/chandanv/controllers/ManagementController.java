@@ -15,12 +15,19 @@ import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.bson.types.ObjectId;
 
 @RestController
 @RequestMapping("/api/management")
@@ -40,6 +47,86 @@ public class ManagementController {
                 .map(this::toEmployee)
                 .sorted(Comparator.comparing(EmployeeDto::idNV))
                 .toList();
+    }
+
+    @GetMapping("/nhan-vien/{id}")
+    public ResponseEntity<EmployeeDto> getEmployee(@PathVariable String id) {
+        Document employee = findEmployeeById(id);
+        if (employee == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(toEmployee(employee));
+    }
+
+    @PostMapping("/nhan-vien")
+    public ResponseEntity<?> createEmployee(@RequestBody EmployeeWriteRequest request) {
+        if (isBlank(request.hoVaTen()) || isBlank(request.username()) || isBlank(request.matKhau())) {
+            return ResponseEntity.badRequest().body("Họ tên, username và mật khẩu là bắt buộc");
+        }
+
+        if (usernameExists(request.username(), null)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username đã tồn tại");
+        }
+
+        Document employee = new Document()
+                .append("idNV", nextIdNV())
+                .append("HoVaten", request.hoVaTen().trim())
+                .append("Username", request.username().trim())
+                .append("ChucVu", defaultString(request.chucVu(), "Phục vụ"))
+                .append("HinhThuc", defaultString(request.hinhThuc(), "FULLTIME"))
+                .append("SoDienThoai", defaultString(request.soDienThoai(), ""))
+                .append("MatKhau", request.matKhau());
+
+        if (!isBlank(request.caLam())) {
+            employee.append("CaLam", request.caLam().trim());
+        }
+
+        mongoTemplate.save(employee, "nhan_vien");
+        return ResponseEntity.ok(toEmployee(employee));
+    }
+
+    @PutMapping("/nhan-vien/{id}")
+    public ResponseEntity<?> updateEmployee(@PathVariable String id, @RequestBody EmployeeWriteRequest request) {
+        Document employee = findEmployeeById(id);
+        if (employee == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (isBlank(request.hoVaTen()) || isBlank(request.username())) {
+            return ResponseEntity.badRequest().body("Họ tên và username là bắt buộc");
+        }
+
+        if (usernameExists(request.username(), id)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username đã tồn tại");
+        }
+
+        employee.put("HoVaten", request.hoVaTen().trim());
+        employee.put("Username", request.username().trim());
+        employee.put("ChucVu", defaultString(request.chucVu(), stringValue(employee, "ChucVu")));
+        employee.put("HinhThuc", defaultString(request.hinhThuc(), stringValue(employee, "HinhThuc")));
+        employee.put("SoDienThoai", defaultString(request.soDienThoai(), stringValue(employee, "SoDienThoai")));
+
+        if (!isBlank(request.matKhau())) {
+            employee.put("MatKhau", request.matKhau());
+        }
+
+        if (!isBlank(request.caLam())) {
+            employee.put("CaLam", request.caLam().trim());
+        }
+
+        mongoTemplate.save(employee, "nhan_vien");
+        return ResponseEntity.ok(toEmployee(employee));
+    }
+
+    @DeleteMapping("/nhan-vien/{id}")
+    public ResponseEntity<?> deleteEmployee(@PathVariable String id) {
+        Document employee = findEmployeeById(id);
+        if (employee == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        mongoTemplate.remove(employee, "nhan_vien");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/phan-quyen")
@@ -95,34 +182,76 @@ public class ManagementController {
 
     @GetMapping("/kho")
     public InventoryResponse getInventory() {
-        Map<Integer, String> categories = mongoTemplate.findAll(Document.class, "loai_mon_an")
-                .stream()
-                .collect(Collectors.toMap(
-                        doc -> intValue(doc, "idLoai"),
-                        doc -> stringValue(doc, "tenLoai"),
-                        (left, right) -> left));
+        List<NguyenLieuItemDto> nguyenLieuItems = getNguyenLieuInventory();
+        long lowIngredient = nguyenLieuItems.stream().filter(NguyenLieuItemDto::canhBao).count();
+        return new InventoryResponse(nguyenLieuItems.size(), lowIngredient, nguyenLieuItems);
+    }
 
-        List<InventoryItemDto> items = mongoTemplate.findAll(Document.class, "mon_an")
-                .stream()
-                .map(doc -> {
-                    int idLoai = intValue(doc, "idLoai");
-                    int stock = intValue(doc, "soLuongTon");
-                    int minStock = intValueOrDefault(doc, "mucCanhBao", 10);
+    @GetMapping("/nguyen-lieu")
+    public List<NguyenLieuItemDto> getNguyenLieu() {
+        return getNguyenLieuInventory();
+    }
 
-                    return new InventoryItemDto(
-                            intValue(doc, "idMon"),
-                            stringValue(doc, "TenMon"),
-                            categories.getOrDefault(idLoai, "Chưa phân loại"),
-                            stock,
-                            minStock,
-                            stock <= minStock,
-                            numberValue(doc, "Gia"));
-                })
-                .sorted(Comparator.comparing(InventoryItemDto::idMon))
-                .toList();
+    @PostMapping("/nguyen-lieu")
+    public ResponseEntity<?> createNguyenLieu(@RequestBody NguyenLieuWriteRequest request) {
+        if (isBlank(request.tenNguyenLieu())) {
+            return ResponseEntity.badRequest().body("Tên nguyên liệu là bắt buộc");
+        }
 
-        long lowStock = items.stream().filter(InventoryItemDto::canhBao).count();
-        return new InventoryResponse(items.size(), lowStock, items);
+        int idNL = nextIdNL();
+        Document ingredient = new Document()
+                .append("idNL", idNL)
+                .append("tenNguyenLieu", request.tenNguyenLieu().trim())
+                .append("donViTinh", defaultString(request.donViTinh(), "Kg"))
+                .append("loai", defaultString(request.loai(), "Khác"));
+
+        mongoTemplate.save(ingredient, "nguyen_lieu");
+
+        int stock = request.soLuongTon() != null ? request.soLuongTon() : 0;
+        int minStock = request.mucCanhBao() != null ? request.mucCanhBao() : 5;
+        upsertTonKho(idNL, stock, minStock);
+
+        return ResponseEntity.ok(toNguyenLieuItem(ingredient, stock, minStock));
+    }
+
+    @PutMapping("/ton-kho/{idNL}")
+    public ResponseEntity<?> updateTonKho(@PathVariable int idNL, @RequestBody TonKhoWriteRequest request) {
+        Document ingredient = mongoTemplate.findOne(
+                Query.query(Criteria.where("idNL").is(idNL)),
+                Document.class,
+                "nguyen_lieu");
+
+        if (ingredient == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        int stock = request.soLuongTon() != null ? request.soLuongTon() : 0;
+        int minStock = request.mucCanhBao() != null ? request.mucCanhBao() : 5;
+        upsertTonKho(idNL, stock, minStock);
+
+        return ResponseEntity.ok(toNguyenLieuItem(ingredient, stock, minStock));
+    }
+
+    @PutMapping("/mon-an/{idMon}/ton-kho")
+    public ResponseEntity<?> updateMonAnStock(@PathVariable int idMon, @RequestBody TonKhoWriteRequest request) {
+        Document monAn = mongoTemplate.findOne(
+                Query.query(Criteria.where("idMon").is(idMon)),
+                Document.class,
+                "mon_an");
+
+        if (monAn == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (request.soLuongTon() != null) {
+            monAn.put("soLuongTon", request.soLuongTon());
+        }
+        if (request.mucCanhBao() != null) {
+            monAn.put("mucCanhBao", request.mucCanhBao());
+        }
+
+        mongoTemplate.save(monAn, "mon_an");
+        return ResponseEntity.ok(monAn);
     }
 
     @GetMapping("/bao-cao")
@@ -215,7 +344,130 @@ public class ManagementController {
                 stringValue(doc, "ChucVu"),
                 stringValue(doc, "HinhThuc"),
                 stringValue(doc, "SoDienThoai"),
-                "Đang làm");
+                "Đang làm",
+                stringValue(doc, "CaLam"));
+    }
+
+    private Document findEmployeeById(String id) {
+        if (ObjectId.isValid(id)) {
+            Document byObjectId = mongoTemplate.findById(new ObjectId(id), Document.class, "nhan_vien");
+            if (byObjectId != null) {
+                return byObjectId;
+            }
+        }
+
+        return mongoTemplate.findOne(
+                Query.query(Criteria.where("idNV").is(parseIntOrZero(id))),
+                Document.class,
+                "nhan_vien");
+    }
+
+    private int nextIdNV() {
+        return mongoTemplate.findAll(Document.class, "nhan_vien")
+                .stream()
+                .mapToInt(doc -> intValue(doc, "idNV"))
+                .max()
+                .orElse(0) + 1;
+    }
+
+    private int nextIdNL() {
+        return mongoTemplate.findAll(Document.class, "nguyen_lieu")
+                .stream()
+                .mapToInt(doc -> intValue(doc, "idNL"))
+                .max()
+                .orElse(0) + 1;
+    }
+
+    private int nextIdTonKho() {
+        return mongoTemplate.findAll(Document.class, "ton_kho")
+                .stream()
+                .mapToInt(doc -> intValue(doc, "idTonKho"))
+                .max()
+                .orElse(0) + 1;
+    }
+
+    private boolean usernameExists(String username, String excludeId) {
+        Document existing = mongoTemplate.findOne(
+                Query.query(Criteria.where("Username").is(username.trim())),
+                Document.class,
+                "nhan_vien");
+
+        if (existing == null) {
+            return false;
+        }
+
+        if (excludeId == null) {
+            return true;
+        }
+
+        String existingId = stringValue(existing, "_id");
+        return !existingId.equals(excludeId);
+    }
+
+    private List<NguyenLieuItemDto> getNguyenLieuInventory() {
+        Map<Integer, Document> stockByIngredient = mongoTemplate.findAll(Document.class, "ton_kho")
+                .stream()
+                .collect(Collectors.toMap(
+                        doc -> intValue(doc, "idNL"),
+                        doc -> doc,
+                        (left, right) -> left));
+
+        return mongoTemplate.findAll(Document.class, "nguyen_lieu")
+                .stream()
+                .map(doc -> {
+                    int idNL = intValue(doc, "idNL");
+                    Document stock = stockByIngredient.get(idNL);
+                    int quantity = stock == null ? 0 : intValue(stock, "soLuongTon");
+                    int minStock = stock == null ? 5 : intValueOrDefault(stock, "mucCanhBao", 5);
+                    return toNguyenLieuItem(doc, quantity, minStock);
+                })
+                .sorted(Comparator.comparing(NguyenLieuItemDto::idNL))
+                .toList();
+    }
+
+    private NguyenLieuItemDto toNguyenLieuItem(Document doc, int stock, int minStock) {
+        return new NguyenLieuItemDto(
+                intValue(doc, "idNL"),
+                stringValue(doc, "tenNguyenLieu"),
+                stringValue(doc, "donViTinh"),
+                stringValue(doc, "loai"),
+                stock,
+                minStock,
+                stock <= minStock);
+    }
+
+    private void upsertTonKho(int idNL, int stock, int minStock) {
+        Document existing = mongoTemplate.findOne(
+                Query.query(Criteria.where("idNL").is(idNL)),
+                Document.class,
+                "ton_kho");
+
+        if (existing == null) {
+            existing = new Document()
+                    .append("idTonKho", nextIdTonKho())
+                    .append("idNL", idNL);
+        }
+
+        existing.put("soLuongTon", stock);
+        existing.put("mucCanhBao", minStock);
+        existing.put("ngayCapNhat", Instant.now());
+        mongoTemplate.save(existing, "ton_kho");
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private String defaultString(String value, String fallback) {
+        return isBlank(value) ? fallback : value.trim();
+    }
+
+    private int parseIntOrZero(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     private Map<String, Boolean> permissions(boolean employees, boolean reports, boolean orders, boolean inventory, boolean qr, boolean settings) {
@@ -358,7 +610,18 @@ public class ManagementController {
             String chucVu,
             String hinhThuc,
             String soDienThoai,
-            String trangThai) {
+            String trangThai,
+            String caLam) {
+    }
+
+    public record EmployeeWriteRequest(
+            String hoVaTen,
+            String username,
+            String chucVu,
+            String hinhThuc,
+            String soDienThoai,
+            String matKhau,
+            String caLam) {
     }
 
     public record RoleDto(
@@ -373,20 +636,33 @@ public class ManagementController {
             boolean enabled) {
     }
 
-    public record InventoryItemDto(
-            int idMon,
-            String tenMon,
+    public record InventoryResponse(
+            int tongNguyenLieu,
+            long nguyenLieuSapHet,
+            List<NguyenLieuItemDto> nguyenLieuItems) {
+    }
+
+    public record NguyenLieuItemDto(
+            int idNL,
+            String tenNguyenLieu,
+            String donViTinh,
             String loai,
             int soLuongTon,
             int mucCanhBao,
-            boolean canhBao,
-            double giaTriDonVi) {
+            boolean canhBao) {
     }
 
-    public record InventoryResponse(
-            int tongMatHang,
-            long sapHet,
-            List<InventoryItemDto> items) {
+    public record NguyenLieuWriteRequest(
+            String tenNguyenLieu,
+            String donViTinh,
+            String loai,
+            Integer soLuongTon,
+            Integer mucCanhBao) {
+    }
+
+    public record TonKhoWriteRequest(
+            Integer soLuongTon,
+            Integer mucCanhBao) {
     }
 
     public record TopProductDto(

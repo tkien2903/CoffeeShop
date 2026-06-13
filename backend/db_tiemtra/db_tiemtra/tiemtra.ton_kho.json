@@ -1,0 +1,120 @@
+[{
+  "_id": {
+    "$oid": "6a2a5556517510647cc3130b"
+  },
+  "idTonKho": 1,
+  "idNL": 1,
+  "soLuongTon": 120,
+  "mucCanhBao": 20,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc3130c"
+  },
+  "idTonKho": 2,
+  "idNL": 2,
+  "soLuongTon": 35,
+  "mucCanhBao": 5,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc3130d"
+  },
+  "idTonKho": 3,
+  "idNL": 3,
+  "soLuongTon": 15,
+  "mucCanhBao": 3,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc3130e"
+  },
+  "idTonKho": 4,
+  "idNL": 4,
+  "soLuongTon": 18,
+  "mucCanhBao": 3,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc3130f"
+  },
+  "idTonKho": 5,
+  "idNL": 5,
+  "soLuongTon": 12,
+  "mucCanhBao": 2,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc31310"
+  },
+  "idTonKho": 6,
+  "idNL": 6,
+  "soLuongTon": 8,
+  "mucCanhBao": 2,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc31311"
+  },
+  "idTonKho": 7,
+  "idNL": 7,
+  "soLuongTon": 50,
+  "mucCanhBao": 10,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc31312"
+  },
+  "idTonKho": 8,
+  "idNL": 8,
+  "soLuongTon": 10,
+  "mucCanhBao": 2,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc31313"
+  },
+  "idTonKho": 9,
+  "idNL": 9,
+  "soLuongTon": 25,
+  "mucCanhBao": 5,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5556517510647cc31314"
+  },
+  "idTonKho": 10,
+  "idNL": 10,
+  "soLuongTon": 15,
+  "mucCanhBao": 5,
+  "ngayCapNhat": {
+    "$date": "2026-06-11T06:27:34.401Z"
+  }
+}]

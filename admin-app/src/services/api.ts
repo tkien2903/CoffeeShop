@@ -25,6 +25,16 @@ export type MonAn = {
   idLoai: number;
   gia: number;
   image?: string;
+  soLuongTon?: number;
+  mucCanhBao?: number;
+};
+
+export type MonAnInput = {
+  tenMon: string;
+  idLoai: number;
+  gia: number;
+  soLuongTon?: number;
+  mucCanhBao?: number;
 };
 
 export type BanAn = {
@@ -58,6 +68,17 @@ export type Employee = {
   hinhThuc: string;
   soDienThoai: string;
   trangThai: string;
+  caLam?: string;
+};
+
+export type EmployeeInput = {
+  hoVaTen: string;
+  username: string;
+  chucVu: string;
+  hinhThuc: string;
+  soDienThoai: string;
+  matKhau?: string;
+  caLam?: string;
 };
 
 export type RolePermission = {
@@ -66,20 +87,39 @@ export type RolePermission = {
   quyen: Record<string, boolean>;
 };
 
-export type InventoryItem = {
-  idMon: number;
-  tenMon: string;
+export type LoaiMonAn = {
+  idLoai: number;
+  tenLoai: string;
+  moTa?: string;
+};
+
+export type InventoryResponse = {
+  tongNguyenLieu: number;
+  nguyenLieuSapHet: number;
+  nguyenLieuItems: NguyenLieuItem[];
+};
+
+export type NguyenLieuItem = {
+  idNL: number;
+  tenNguyenLieu: string;
+  donViTinh: string;
   loai: string;
   soLuongTon: number;
   mucCanhBao: number;
   canhBao: boolean;
-  giaTriDonVi: number;
 };
 
-export type InventoryResponse = {
-  tongMatHang: number;
-  sapHet: number;
-  items: InventoryItem[];
+export type NguyenLieuInput = {
+  tenNguyenLieu: string;
+  donViTinh: string;
+  loai: string;
+  soLuongTon?: number;
+  mucCanhBao?: number;
+};
+
+export type StockInput = {
+  soLuongTon?: number;
+  mucCanhBao?: number;
 };
 
 export type ReportResponse = {
@@ -178,6 +218,38 @@ export const coffeeApi = {
     return request<MonAn[]>('/api/mon-an');
   },
 
+  getLoaiMonAn() {
+    return request<LoaiMonAn[]>('/api/mon-an/loai');
+  },
+
+  createMonAn(payload: MonAnInput) {
+    return request<MonAn>('/api/mon-an', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateMonAn(id: string, payload: MonAnInput) {
+    return request<MonAn>(`/api/mon-an/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteMonAn(id: string) {
+    return request<void>(`/api/mon-an/${id}`, { method: 'DELETE' });
+  },
+
+  updateMonAnStock(idMon: number, payload: StockInput) {
+    return request<unknown>(`/api/management/mon-an/${idMon}/ton-kho`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
   getBanAn() {
     return request<BanAn[]>('/api/ban-an');
   },
@@ -188,6 +260,30 @@ export const coffeeApi = {
 
   getEmployees() {
     return request<Employee[]>('/api/management/nhan-vien');
+  },
+
+  getEmployee(id: string) {
+    return request<Employee>(`/api/management/nhan-vien/${id}`);
+  },
+
+  createEmployee(payload: EmployeeInput) {
+    return request<Employee>('/api/management/nhan-vien', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateEmployee(id: string, payload: EmployeeInput) {
+    return request<Employee>(`/api/management/nhan-vien/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteEmployee(id: string) {
+    return request<void>(`/api/management/nhan-vien/${id}`, { method: 'DELETE' });
   },
 
   getRoles() {
@@ -206,6 +302,26 @@ export const coffeeApi = {
 
   getInventory() {
     return request<InventoryResponse>('/api/management/kho');
+  },
+
+  getNguyenLieu() {
+    return request<NguyenLieuItem[]>('/api/management/nguyen-lieu');
+  },
+
+  createNguyenLieu(payload: NguyenLieuInput) {
+    return request<NguyenLieuItem>('/api/management/nguyen-lieu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateNguyenLieuStock(idNL: number, payload: StockInput) {
+    return request<NguyenLieuItem>(`/api/management/ton-kho/${idNL}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
   },
 
   getReport() {

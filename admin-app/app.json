@@ -4,7 +4,7 @@
     "slug": "coffeeshop-admin",
     "version": "1.0.0",
     "scheme": "coffeeshop",
-    "orientation": "portrait",
+    "orientation": "default",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
@@ -22,6 +22,9 @@
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

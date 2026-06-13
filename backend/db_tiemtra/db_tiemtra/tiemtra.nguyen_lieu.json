@@ -1,0 +1,180 @@
+[{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888d5"
+  },
+  "idNL": 1,
+  "tenNguyenLieu": "Sữa tươi",
+  "donViTinh": "Hộp",
+  "loai": "Sữa"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888d6"
+  },
+  "idNL": 2,
+  "tenNguyenLieu": "Bột sữa",
+  "donViTinh": "Kg",
+  "loai": "Sữa"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888d7"
+  },
+  "idNL": 3,
+  "tenNguyenLieu": "Trà đen",
+  "donViTinh": "Kg",
+  "loai": "Trà"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888d8"
+  },
+  "idNL": 4,
+  "tenNguyenLieu": "Trà xanh",
+  "donViTinh": "Kg",
+  "loai": "Trà"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888d9"
+  },
+  "idNL": 5,
+  "tenNguyenLieu": "Trà Olong",
+  "donViTinh": "Kg",
+  "loai": "Trà"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888da"
+  },
+  "idNL": 6,
+  "tenNguyenLieu": "Matcha",
+  "donViTinh": "Kg",
+  "loai": "Bột"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888db"
+  },
+  "idNL": 7,
+  "tenNguyenLieu": "Đường",
+  "donViTinh": "Kg",
+  "loai": "Gia vị"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888dc"
+  },
+  "idNL": 8,
+  "tenNguyenLieu": "Kem muối",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888dd"
+  },
+  "idNL": 9,
+  "tenNguyenLieu": "Trân châu đen",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888de"
+  },
+  "idNL": 10,
+  "tenNguyenLieu": "Trân châu trắng",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888df"
+  },
+  "idNL": 11,
+  "tenNguyenLieu": "Thạch dừa",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e0"
+  },
+  "idNL": 12,
+  "tenNguyenLieu": "Phô mai mặn",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e1"
+  },
+  "idNL": 13,
+  "tenNguyenLieu": "Phô mai ngọt",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e2"
+  },
+  "idNL": 14,
+  "tenNguyenLieu": "Khoai môn nghiền",
+  "donViTinh": "Kg",
+  "loai": "Topping"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e3"
+  },
+  "idNL": 15,
+  "tenNguyenLieu": "Đào ngâm",
+  "donViTinh": "Hộp",
+  "loai": "Trái cây"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e4"
+  },
+  "idNL": 16,
+  "tenNguyenLieu": "Vải ngâm",
+  "donViTinh": "Hộp",
+  "loai": "Trái cây"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e5"
+  },
+  "idNL": 17,
+  "tenNguyenLieu": "Chanh",
+  "donViTinh": "Kg",
+  "loai": "Trái cây"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e6"
+  },
+  "idNL": 18,
+  "tenNguyenLieu": "Tắc",
+  "donViTinh": "Kg",
+  "loai": "Trái cây"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e7"
+  },
+  "idNL": 19,
+  "tenNguyenLieu": "Xoài",
+  "donViTinh": "Kg",
+  "loai": "Trái cây"
+},
+{
+  "_id": {
+    "$oid": "6a2a553f48ca3cd4835888e8"
+  },
+  "idNL": 20,
+  "tenNguyenLieu": "Cam",
+  "donViTinh": "Kg",
+  "loai": "Trái cây"
+}]

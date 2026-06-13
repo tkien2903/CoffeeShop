@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { BrandHeader, ScreenShell, palette } from '@/components/coffee-ui';
-import { getCurrentUser, clearCurrentUser, canAccess } from '@/services/session';
+import { getCurrentUser, clearSession, canAccess } from '@/services/session';
 
 type MoreMenuItem = {
   label: string;
@@ -106,8 +106,8 @@ export default function MoreScreen() {
 
       {/* Đăng xuất - Xóa session */}
       <Pressable
-        onPress={() => {
-          clearCurrentUser();
+        onPress={async () => {
+          await clearSession();
           router.replace('/');
         }}
         style={({ pressed }) => ({
