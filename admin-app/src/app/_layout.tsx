@@ -41,6 +41,7 @@ export default function TabLayout() {
         <Stack.Screen name="roles" />
         <Stack.Screen name="reports" />
         <Stack.Screen name="inventory" />
+        <Stack.Screen name="history" />
       </Stack>
     </ThemeProvider>
   );

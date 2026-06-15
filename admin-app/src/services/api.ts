@@ -138,6 +138,20 @@ export type ReportResponse = {
   }[];
 };
 
+export type OrderHistory = {
+  _id: string;
+  idLichSu: number;
+  idChiTiet: number;
+  idDonHang: number;
+  idBan: number;
+  tongTienGoc: number;
+  tienGiam: number;
+  tongTienThanhToan: number;
+  thoiGian: string | null;
+  trangThai: number;
+  items: { tenMon: string; soLuong: number }[];
+};
+
 const DEFAULT_API_BASE_URL =
   process.env.EXPO_OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
 
@@ -254,6 +268,14 @@ export const coffeeApi = {
     return request<BanAn[]>('/api/ban-an');
   },
 
+  updateTableStatus(idBan: number, trangThai: number) {
+    return request<void>(`/api/ban-an/${idBan}/trang-thai/${trangThai}`, { method: 'PUT' });
+  },
+
+  resetAllTables() {
+    return request<void>('/api/ban-an/reset', { method: 'PUT' });
+  },
+
   getChiTietDonHang() {
     return request<ChiTietDonHang[]>('/api/chi-tiet-don');
   },
@@ -326,5 +348,9 @@ export const coffeeApi = {
 
   getReport() {
     return request<ReportResponse>('/api/management/bao-cao');
+  },
+
+  getOrderHistory() {
+    return request<OrderHistory[]>('/api/management/lich-su-don-hang');
   },
 };

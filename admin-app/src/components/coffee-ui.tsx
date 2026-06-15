@@ -88,7 +88,7 @@ function BottomNav({ active, bottom }: { active: 'home' | 'products' | 'orders' 
       }}>
       <NavItem href={homePath} label="Trang chủ" active={active === 'home'} icon="home-outline" />
       <NavItem href="/products" label="Sản phẩm" active={active === 'products'} materialIcon="book-open-page-variant-outline" />
-      <NavItem href={homePath} label="Đơn hàng" active={active === 'orders'} materialIcon="coffee-outline" />
+      <NavItem href="/orders" label="Đơn hàng" active={active === 'orders'} materialIcon="coffee-outline" />
       <NavItem href="/more" label="Khác" active={active === 'more'} icon="menu-outline" />
     </View>
   );

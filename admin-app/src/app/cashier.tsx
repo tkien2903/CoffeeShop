@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 
@@ -12,6 +12,7 @@ export default function CashierScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [timeElapsed, setTimeElapsed] = useState('0 phút');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'empty' | 'occupied'>('all');
 
   const user = getCurrentUser();
   const hasReportPermission = canAccess('Báo cáo doanh thu');
@@ -80,7 +81,34 @@ export default function CashierScreen() {
   }
 
   // Count occupied tables
-  const occupiedCount = tables.filter(t => t.trangThai === 1).length;
+  const displayedTables = tables.filter(t => t.idBan >= 1 && t.idBan <= 10);
+  const occupiedCount = displayedTables.filter(t => t.trangThai === 1).length;
+
+  const handleResetTables = async () => {
+    try {
+      await coffeeApi.resetAllTables();
+      const updated = await coffeeApi.getBanAn();
+      setTables(updated);
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể reset trạng thái bàn');
+    }
+  };
+
+  const handleCompleteTable = async (idBan: number) => {
+    try {
+      await coffeeApi.updateTableStatus(idBan, 0);
+      const updated = await coffeeApi.getBanAn();
+      setTables(updated);
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không thể cập nhật trạng thái bàn');
+    }
+  };
+
+  const filteredTables = displayedTables.filter(t => 
+    filterStatus === 'all' || 
+    (filterStatus === 'empty' && t.trangThai === 0) || 
+    (filterStatus === 'occupied' && t.trangThai === 1)
+  );
 
   return (
     <ScreenShell active="home">
@@ -185,19 +213,60 @@ export default function CashierScreen() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <SectionTitle>Danh sách bàn & Đơn hàng</SectionTitle>
           <Text selectable style={{ fontSize: 12, color: '#9b9aa0', fontWeight: '600' }}>
-            Đang hoạt động: {occupiedCount}/{tables.length}
+            Đang hoạt động: {occupiedCount}/{displayedTables.length}
           </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 6 }}>
+            {['Tất cả', 'Trống', 'Có khách'].map((item, index) => {
+              const statusMap = ['all', 'empty', 'occupied'] as const;
+              const isActive = filterStatus === statusMap[index];
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => setFilterStatus(statusMap[index])}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 14,
+                    backgroundColor: isActive ? '#302d43' : '#f0f0f0',
+                  }}>
+                  <Text selectable style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: isActive ? '#fff' : '#666' }}>
+                    {item}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Pressable
+            onPress={() => {
+              Alert.alert('Xác nhận', 'Bạn có chắc muốn Reset tất cả các bàn về trạng thái Trống?', [
+                { text: 'Hủy', style: 'cancel' },
+                { text: 'Reset', onPress: handleResetTables, style: 'destructive' }
+              ]);
+            }}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 6,
+              backgroundColor: '#ffefef',
+              borderWidth: 1,
+              borderColor: '#fde2e2',
+            }}>
+            <Text selectable style={{ fontSize: 12, fontWeight: '700', color: '#f3545b' }}>Reset</Text>
+          </Pressable>
         </View>
 
         {isLoading ? (
           <Text selectable style={{ paddingVertical: 20, color: '#9b9aa0', textAlign: 'center' }}>Đang tải sơ đồ bàn...</Text>
         ) : errorMessage ? (
           <Text selectable style={{ paddingVertical: 20, color: '#f3545b', textAlign: 'center' }}>{errorMessage}</Text>
-        ) : tables.length === 0 ? (
-          <Text selectable style={{ paddingVertical: 20, color: '#9b9aa0', textAlign: 'center' }}>Không có bàn nào được đăng ký.</Text>
+        ) : filteredTables.length === 0 ? (
+          <Text selectable style={{ paddingVertical: 20, color: '#9b9aa0', textAlign: 'center' }}>Không có bàn nào phù hợp.</Text>
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' }}>
-            {tables.map((table) => {
+            {filteredTables.map((table) => {
               const isOccupied = table.trangThai === 1;
               return (
                 <View
@@ -225,6 +294,19 @@ export default function CashierScreen() {
                   <Text selectable style={{ fontSize: 11, color: isOccupied ? '#f3545b' : '#54cf2d', fontWeight: '700', marginTop: 8 }}>
                     {isOccupied ? 'Có khách - Đang dùng' : 'Bàn trống'}
                   </Text>
+                  {isOccupied && (
+                    <Pressable
+                      onPress={() => handleCompleteTable(table.idBan)}
+                      style={{
+                        marginTop: 8,
+                        paddingVertical: 6,
+                        backgroundColor: '#54cf2d',
+                        borderRadius: 4,
+                        alignItems: 'center',
+                      }}>
+                      <Text selectable style={{ fontSize: 11, fontWeight: '700', color: '#fff' }}>Hoàn thành</Text>
+                    </Pressable>
+                  )}
                 </View>
               );
             })}

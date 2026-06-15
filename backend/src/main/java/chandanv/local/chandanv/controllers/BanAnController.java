@@ -47,7 +47,7 @@ public class BanAnController {
 
     @ResponseBody
     @PutMapping("/{idBan}/trang-thai/{trangThai}")
-    public ResponseEntity<Void> capNhatTrangThaiBan(
+    public ResponseEntity<java.util.Map<String, Boolean>> capNhatTrangThaiBan(
             @PathVariable int idBan,
             @PathVariable int trangThai) {
 
@@ -56,24 +56,24 @@ public class BanAnController {
         }
 
         service.capNhatTrangThai(idBan, trangThai);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(java.util.Map.of("success", true));
     }
 
     @ResponseBody
     @PutMapping("/reset")
-    public ResponseEntity<Void> resetTrangThaiBan() {
+    public ResponseEntity<java.util.Map<String, Boolean>> resetTrangThaiBan() {
         service.resetTatCaBan();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(java.util.Map.of("success", true));
     }
 
     @ResponseBody
     @PostMapping("/luu-qr-image/{idBan}")
-    public ResponseEntity<Void> luuQRImage(
+    public ResponseEntity<java.util.Map<String, Boolean>> luuQRImage(
             @PathVariable int idBan,
             @RequestBody String base64Image) {
 
         service.luuAnhQR(idBan, base64Image);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(java.util.Map.of("success", true));
     }
 
     @GetMapping("/tai-qr/{idBan}")

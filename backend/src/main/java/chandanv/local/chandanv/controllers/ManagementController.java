@@ -254,6 +254,84 @@ public class ManagementController {
         return ResponseEntity.ok(monAn);
     }
 
+    @GetMapping("/lich-su-don-hang")
+    public List<OrderHistoryDto> getOrderHistory() {
+        List<Document> history = mongoTemplate.findAll(Document.class, "lich_su_ban_hang");
+        List<Document> details = mongoTemplate.findAll(Document.class, "chi_tiet_don");
+        List<Document> orders = mongoTemplate.findAll(Document.class, "don_hang");
+        List<Document> monAn = mongoTemplate.findAll(Document.class, "mon_an");
+        List<Document> gioHang = mongoTemplate.findAll(Document.class, "gio_hang");
+
+        Map<Integer, Document> detailById = details.stream()
+                .collect(Collectors.toMap(doc -> intValue(doc, "idChiTiet"), doc -> doc, (left, right) -> left));
+
+        Map<Integer, Document> orderById = orders.stream()
+                .collect(Collectors.toMap(doc -> intValue(doc, "idDonHang"), doc -> doc, (left, right) -> left));
+
+        Map<Integer, String> monAnNames = monAn.stream()
+                .collect(Collectors.toMap(doc -> intValue(doc, "idMon"), doc -> stringValue(doc, "TenMon"), (left, right) -> left));
+
+        Map<Integer, Integer> gioHangToBan = gioHang.stream()
+                .collect(Collectors.toMap(doc -> intValue(doc, "idGioHang"), doc -> intValue(doc, "idBan"), (left, right) -> left));
+
+        return history.stream().map(doc -> {
+            int idChiTiet = intValue(doc, "idChiTiet");
+            Document detail = detailById.get(idChiTiet);
+            int idDonHang = detail != null ? intValue(detail, "idDonHang") : 0;
+            Document order = idDonHang > 0 ? orderById.get(idDonHang) : null;
+
+            int idBan = 0;
+            Instant thoiGian = null;
+            int trangThai = 0;
+
+            if (order != null) {
+                Object timeObj = order.get("thoiGian");
+                if (timeObj instanceof java.util.Date date) {
+                    thoiGian = date.toInstant();
+                } else if (timeObj instanceof Instant instant) {
+                    thoiGian = instant;
+                }
+                trangThai = intValue(order, "trangThai");
+                int idGioHang = intValue(order, "idGioHang");
+                idBan = gioHangToBan.getOrDefault(idGioHang, 0);
+            }
+
+            int tongTienGoc = intValue(doc, "tongTienGoc");
+            int tienGiam = intValue(doc, "tienGiam");
+            int tongTienThanhToan = intValue(doc, "tongTienThanhToan");
+
+            List<OrderItemDto> items = new java.util.ArrayList<>();
+            if (detail != null) {
+                int idMon = intValue(detail, "idMon");
+                if (idMon == 0) idMon = idChiTiet;
+                String name = monAnNames.getOrDefault(idMon, "Món #" + idMon);
+                int soLuong = Math.max(1, intValue(detail, "soLuong"));
+                items.add(new OrderItemDto(name, soLuong));
+            } else {
+                items.add(new OrderItemDto("Sản phẩm #" + idChiTiet, 1));
+            }
+
+            return new OrderHistoryDto(
+                    stringValue(doc, "_id"),
+                    intValue(doc, "idLichSu"),
+                    idChiTiet,
+                    idDonHang,
+                    idBan,
+                    tongTienGoc,
+                    tienGiam,
+                    tongTienThanhToan,
+                    thoiGian,
+                    trangThai,
+                    items
+            );
+        }).sorted((a, b) -> {
+            if (a.thoiGian() == null && b.thoiGian() == null) return 0;
+            if (a.thoiGian() == null) return 1;
+            if (b.thoiGian() == null) return -1;
+            return b.thoiGian().compareTo(a.thoiGian()); // descending
+        }).toList();
+    }
+
     @GetMapping("/bao-cao")
     public ReportDto getReport() {
         List<Document> orders = mongoTemplate.findAll(Document.class, "don_hang");
@@ -681,6 +759,25 @@ public class ManagementController {
             long daHuy,
             Map<String, Double> doanhThuTheoGio,
             List<TopProductDto> topSanPham) {
+    }
+
+    public record OrderItemDto(
+            String tenMon,
+            int soLuong) {
+    }
+
+    public record OrderHistoryDto(
+            String _id,
+            int idLichSu,
+            int idChiTiet,
+            int idDonHang,
+            int idBan,
+            int tongTienGoc,
+            int tienGiam,
+            int tongTienThanhToan,
+            Instant thoiGian,
+            int trangThai,
+            List<OrderItemDto> items) {
     }
 
     private static class ProductAggregate {
