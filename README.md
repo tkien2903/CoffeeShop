@@ -102,7 +102,7 @@ Password: 88888
 Hoặc:
 
 ```text
-Username: lhao
+Username: hhoang
 Password: 12345
 ```
 
