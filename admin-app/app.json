@@ -15,7 +15,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.coffeeshopadmin"
     },
     "web": {
       "bundler": "metro"
