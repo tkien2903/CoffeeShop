@@ -36,6 +36,7 @@ export default function OrdersScreen() {
       await loadTables(false);
     } catch {
       Alert.alert('Lỗi', 'Không thể reset bàn ăn. Vui lòng thử lại.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -47,6 +48,7 @@ export default function OrdersScreen() {
       await loadTables(false);
     } catch {
       Alert.alert('Lỗi', 'Không thể hoàn thành bàn ăn. Vui lòng thử lại.');
+    } finally {
       setIsLoading(false);
     }
   };
