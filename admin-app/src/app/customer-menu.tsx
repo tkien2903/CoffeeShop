@@ -1,6 +1,6 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Image, TouchableOpacity, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { palette } from '@/components/coffee-ui';
@@ -52,6 +52,20 @@ export default function CustomerMenuScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>Menu Coffee Shop</Text>
         <Text style={styles.subtitle}>Đang xem cho Bàn {idBan || '?'}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={[styles.iconButton, { marginRight: 8 }]} 
+            onPress={() => Linking.openURL('https://www.google.com/maps/search/?api=1&query=18A+Cộng+Hòa,+Tân+Bình,+Hồ+Chí+Minh')}
+          >
+            <Ionicons name="location" size={20} color={palette.ink} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            onPress={() => Linking.openURL('tel:0706818776')}
+          >
+            <Ionicons name="call" size={20} color={palette.ink} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {categories.map((category) => {
@@ -124,6 +138,22 @@ const styles = StyleSheet.create({
     top: 0,
     padding: 8,
     zIndex: 10,
+  },
+  headerActions: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    flexDirection: 'row',
+    zIndex: 10,
+  },
+  iconButton: {
+    padding: 8,
+    backgroundColor: '#EAEAEA',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,

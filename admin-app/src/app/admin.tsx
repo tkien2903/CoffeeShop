@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Text, View, Linking, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { BrandHeader, ScreenShell, SectionTitle, palette } from '@/components/coffee-ui';
@@ -38,6 +38,14 @@ export default function AdminScreen() {
           <Text selectable style={{ flex: 1, color: palette.ink, fontSize: 13 }}>
             Xin chào! {username}
           </Text>
+          
+          <TouchableOpacity 
+            style={{ marginRight: 16, marginTop: 4 }}
+            onPress={() => Linking.openURL('https://www.google.com/maps/search/?api=1&query=18A+Cộng+Hòa,+Tân+Bình,+Hồ+Chí+Minh')}
+          >
+            <Ionicons name="location" size={26} color="#ffd314" />
+          </TouchableOpacity>
+
           <Text selectable style={{ marginRight: -5, marginBottom: 22, fontSize: 12 }}>
             0
           </Text>
