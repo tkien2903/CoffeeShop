@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useMemo, memo, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { FormActions, FormField, FormInput, FormSheet } from '@/components/form-sheet';
@@ -216,16 +216,22 @@ export default function EmployeesScreen() {
             ) : errorMessage ? (
               <StatusText tone="error">{errorMessage}</StatusText>
             ) : (
-              <View>
-                {visibleEmployees.map((employee, index) => (
+              <FlatList
+                data={visibleEmployees}
+                keyExtractor={(employee) => employee.id || String(employee.idNV)}
+                windowSize={5}
+                maxToRenderPerBatch={10}
+                initialNumToRender={10}
+                removeClippedSubviews
+                scrollEnabled={false}
+                renderItem={({ item: employee, index }) => (
                   <EmployeeRow
-                    key={employee.id || employee.idNV}
                     employee={employee}
                     color={avatarColors[index % avatarColors.length]}
                     onPress={() => setSelected(employee)}
                   />
-                ))}
-              </View>
+                )}
+              />
             )}
           </View>
         </View>
@@ -346,7 +352,8 @@ function DetailLine({ label, value }: { label: string; value: string }) {
 
 const avatarColors = ['#dcecff', '#fff1d7', '#ddf4d5', '#fde1ed', '#ece8df', '#e8e1cb'];
 
-function EmployeeRow({
+// Wrapped in memo so it only re-renders when its own props change
+const EmployeeRow = memo(function EmployeeRow({
   employee,
   color,
   onPress,
@@ -403,7 +410,7 @@ function EmployeeRow({
       <Ionicons name="chevron-forward" size={16} color="#bbb" style={{ marginLeft: 6 }} />
     </Pressable>
   );
-}
+});
 
 function StatusText({ children, tone = 'default' }: React.PropsWithChildren<{ tone?: 'default' | 'error' }>) {
   return (

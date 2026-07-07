@@ -6,11 +6,13 @@ import { Link } from 'expo-router';
 import { BrandHeader, ScreenShell, SectionTitle } from '@/components/coffee-ui';
 import { BanAn, coffeeApi } from '@/services/api';
 import { getCurrentUser, canAccess } from '@/services/session';
+import * as database from '@/services/database';
 
 export default function StaffScreen() {
   const [tables, setTables] = useState<BanAn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState('0 phút');
 
   const user = getCurrentUser();
@@ -54,22 +56,32 @@ export default function StaffScreen() {
         if (isMounted) {
           setTables(data);
           setErrorMessage('');
+          setIsOffline(false);
+          database.syncBanAn(data);
         }
       })
-      .catch((error) => {
-        if (isMounted) {
-          setErrorMessage(error instanceof Error ? error.message : 'Không tải được bàn ăn');
+      .catch(async () => {
+        if (!isMounted) return;
+        const localData = await database.getLocalBanAn();
+        if (localData && localData.length > 0) {
+          const parsedTables = localData.map((item) => ({
+            idBan: Number((item as any).maBan),
+            tenBan: (item as any).tenBan,
+            trangThai: Number((item as any).trangThai),
+            id: (item as any).id,
+          }));
+          setTables(parsedTables as BanAn[]);
+          setIsOffline(true);
+          setErrorMessage('');
+        } else {
+          setErrorMessage('Không tải được bàn ăn');
         }
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       });
 
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   if (!user) {
@@ -95,7 +107,11 @@ export default function StaffScreen() {
             borderColor: '#e2d5f8',
             borderRadius: 12,
             padding: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
             marginBottom: 20,
           }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -222,6 +238,20 @@ export default function StaffScreen() {
             </View>
           )}
         </View>
+
+        {/* Offline banner */}
+        {isOffline && (
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 8,
+            backgroundColor: '#fffbea', borderWidth: 1, borderColor: '#fde68a',
+            borderRadius: 8, padding: 10, marginBottom: 12,
+          }}>
+            <Ionicons name="cloud-offline-outline" size={16} color="#b45309" />
+            <Text selectable style={{ fontSize: 12, color: '#b45309', fontWeight: '600', flex: 1 }}>
+              Offline — đang dùng dữ liệu cache (cập nhật khi có mạng)
+            </Text>
+          </View>
+        )}
 
         {/* Sơ đồ bàn hỗ trợ phục vụ */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>

@@ -8,7 +8,7 @@ import { getCurrentUser, clearSession, canAccess } from '@/services/session';
 type MoreMenuItem = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap | keyof typeof MaterialCommunityIcons.glyphMap;
-  href: '/employees' | '/qr' | '/roles' | '/reports' | '/inventory' | '/admin' | '/history';
+  href: '/employees' | '/qr' | '/roles' | '/reports' | '/inventory' | '/admin' | '/history' | '/media';
   permission: string;
   material?: boolean;
 };
@@ -20,6 +20,7 @@ const menu: MoreMenuItem[] = [
   { label: 'Báo cáo doanh thu', icon: 'book-open-variant', href: '/reports', permission: 'Báo cáo doanh thu', material: true },
   { label: 'Quản lý kho', icon: 'settings-outline', href: '/inventory', permission: 'Quản lý kho' },
   { label: 'Lịch sử đơn hàng', icon: 'file-document-edit-outline', href: '/history', permission: 'Xem đơn hàng', material: true },
+  { label: 'Multimedia Demo', icon: 'camera-burst', href: '/media', permission: 'Cài đặt hệ thống', material: true },
 ];
 
 export default function MoreScreen() {

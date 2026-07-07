@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { Link, Href } from 'expo-router';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, memo, useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -73,7 +73,8 @@ export function ScreenShell({
 }
 
 function BottomNav({ active, bottom }: { active: 'home' | 'products' | 'orders' | 'more'; bottom: number }) {
-  const homePath = homeRouteFor();
+  // Memoize so homeRouteFor() is not called on every render
+  const homePath = useMemo(() => homeRouteFor(), []);
   return (
     <View
       style={{
@@ -94,7 +95,8 @@ function BottomNav({ active, bottom }: { active: 'home' | 'products' | 'orders' 
   );
 }
 
-function NavItem({
+// Memoized so it doesn't re-render when parent screen state changes
+const NavItem = memo(function NavItem({
   href,
   label,
   active,
@@ -128,7 +130,7 @@ function NavItem({
       </Pressable>
     </Link>
   );
-}
+});
 
 export function CoffeeLogo({ size = 112 }: { size?: number }) {
   return (

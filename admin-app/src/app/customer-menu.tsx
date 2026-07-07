@@ -21,10 +21,31 @@ export default function CustomerMenuScreen() {
         if (isMounted) {
           setCategories(loaiData);
           setProducts(monAnData);
+          import('@/services/database').then((db) => db.syncMonAn(monAnData));
         }
       })
       .catch((err) => {
-        console.warn('Failed to load menu data:', err);
+        console.warn('Failed to load menu data from API:', err);
+        if (isMounted) {
+          import('@/services/database').then(async (db) => {
+            const localMonAn = await db.getLocalMonAn();
+            if (localMonAn && localMonAn.length > 0) {
+              const parsedProducts = localMonAn.map(item => ({
+                _id: (item as any).id,
+                idMon: Number((item as any).maMonAn) || 0,
+                tenMon: (item as any).tenMonAn,
+                idLoai: Number((item as any).danhMuc) || 0,
+                gia: Number((item as any).gia) || 0,
+                image: (item as any).hinhAnh,
+              }));
+              setProducts(parsedProducts as MonAn[]);
+              // LoaiMonAn doesn't have an offline table in DB, so we can mock categories from unique idLoai
+              const uniqueIds = Array.from(new Set(parsedProducts.map(p => p.idLoai)));
+              const mockCategories = uniqueIds.map(id => ({ idLoai: id, tenLoai: 'Danh mục ' + id }));
+              setCategories(mockCategories);
+            }
+          }).catch(() => {});
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useMemo, memo, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { FormActions, FormField, FormInput, FormSheet } from '@/components/form-sheet';
@@ -169,11 +169,19 @@ export default function InventoryScreen() {
         ) : nguyenLieuItems.length === 0 ? (
           <StatusText>Chưa có nguyên liệu trong kho. Hãy import dữ liệu mẫu hoặc thêm mới.</StatusText>
         ) : (
-          <View style={{ gap: 8 }}>
-            {nguyenLieuItems.map((item) => (
-              <NguyenLieuRow key={item.idNL} item={item} onPress={() => canManage && setSelectedIngredient(item)} />
-            ))}
-          </View>
+          <FlatList
+            data={nguyenLieuItems}
+            keyExtractor={(item) => String(item.idNL)}
+            windowSize={5}
+            maxToRenderPerBatch={10}
+            initialNumToRender={10}
+            removeClippedSubviews
+            scrollEnabled={false}
+            contentContainerStyle={{ gap: 8 }}
+            renderItem={({ item }) => (
+              <NguyenLieuRow item={item} onPress={() => canManage && setSelectedIngredient(item)} />
+            )}
+          />
         )}
       </View>
 
@@ -264,7 +272,8 @@ function Metric({ label, value, tone = 'default' }: { label: string; value: stri
   );
 }
 
-function NguyenLieuRow({ item, onPress }: { item: NguyenLieuItem; onPress: () => void }) {
+// Wrapped in memo so it only re-renders when its own props change
+const NguyenLieuRow = memo(function NguyenLieuRow({ item, onPress }: { item: NguyenLieuItem; onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
@@ -311,7 +320,7 @@ function NguyenLieuRow({ item, onPress }: { item: NguyenLieuItem; onPress: () =>
       </View>
     </Pressable>
   );
-}
+});
 
 function StatusText({ children, tone = 'default' }: React.PropsWithChildren<{ tone?: 'default' | 'error' }>) {
   return (

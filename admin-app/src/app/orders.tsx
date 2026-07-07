@@ -4,11 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { BrandHeader, ScreenShell, SectionTitle } from '@/components/coffee-ui';
 import { BanAn, coffeeApi } from '@/services/api';
+import * as database from '@/services/database';
 
 export default function OrdersScreen() {
   const [tables, setTables] = useState<BanAn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
 
   const loadTables = useCallback(async (showLoadingIndicator = true) => {
     try {
@@ -17,8 +19,36 @@ export default function OrdersScreen() {
       const first10Tables = data.slice(0, 10);
       setTables(first10Tables);
       setErrorMessage('');
+      setIsOffline(false);
+
+      // Đồng bộ bàn ăn xuống SQLite
+      database.syncBanAn(data);
+
+      // Đồng bộ đơn hàng + chi tiết đơn đang xử lý xuống SQLite
+      coffeeApi.getChiTietDonHang().then((chiTiet) => {
+        database.syncChiTietDon(chiTiet);
+      }).catch(() => {/* không bắt buộc */});
+
     } catch {
-      setErrorMessage('Không tải được bàn ăn');
+      // Fallback sang dữ liệu offline
+      try {
+        const localBanAn = await database.getLocalBanAn();
+        if (localBanAn && localBanAn.length > 0) {
+          const parsed = localBanAn.map((item) => ({
+            id: (item as any).id,
+            idBan: Number((item as any).maBan) || 0,
+            tenBan: (item as any).tenBan,
+            trangThai: Number((item as any).trangThai),
+          })) as BanAn[];
+          setTables(parsed.slice(0, 10));
+          setIsOffline(true);
+          setErrorMessage('');
+        } else {
+          setErrorMessage('Không tải được bàn ăn');
+        }
+      } catch {
+        setErrorMessage('Không tải được bàn ăn');
+      }
     } finally {
       if (showLoadingIndicator) setIsLoading(false);
     }
@@ -53,21 +83,35 @@ export default function OrdersScreen() {
     }
   };
 
-  const vacantCount = tables.filter(t => t.trangThai === 0).length;
+  const vacantCount = tables.filter((t) => t.trangThai === 0).length;
 
   return (
     <ScreenShell active="orders">
       <BrandHeader />
       <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 30 }}>
-        
+
+        {/* Offline banner */}
+        {isOffline && (
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 8,
+            backgroundColor: '#fffbea', borderWidth: 1, borderColor: '#fde68a',
+            borderRadius: 8, padding: 10, marginBottom: 12,
+          }}>
+            <Ionicons name="cloud-offline-outline" size={16} color="#b45309" />
+            <Text selectable style={{ fontSize: 12, color: '#b45309', fontWeight: '600', flex: 1 }}>
+              Đang dùng dữ liệu offline — kết nối lại để cập nhật mới nhất
+            </Text>
+          </View>
+        )}
+
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <SectionTitle>Sơ đồ bàn ăn ({tables.length} bàn)</SectionTitle>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text selectable style={{ fontSize: 13, color: '#9b9aa0', fontWeight: '600' }}>
               Bàn trống: {vacantCount}/{tables.length}
             </Text>
-            <TouchableOpacity 
-              onPress={handleReset} 
+            <TouchableOpacity
+              onPress={handleReset}
               style={{ backgroundColor: '#f3545b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name="refresh" size={14} color="#fff" />
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Reset</Text>
@@ -110,8 +154,8 @@ export default function OrdersScreen() {
                     <Text selectable style={{ fontSize: 11, color: isOccupied ? '#f3545b' : '#54cf2d', fontWeight: '700' }}>
                       {isOccupied ? 'Đang có khách' : 'Bàn trống'}
                     </Text>
-                    {isOccupied && (
-                      <TouchableOpacity 
+                    {isOccupied && !isOffline && (
+                      <TouchableOpacity
                         onPress={() => handleCompleteTable(table.idBan)}
                         style={{ backgroundColor: '#54cf2d', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
                         <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>Xong</Text>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
@@ -6,11 +6,15 @@ import { Link } from 'expo-router';
 import { BrandHeader, ScreenShell, SectionTitle } from '@/components/coffee-ui';
 import { BanAn, coffeeApi } from '@/services/api';
 import { getCurrentUser, canAccess } from '@/services/session';
+import type { KhuyenMai } from '@/services/api';
+import * as database from '@/services/database';
 
 export default function CashierScreen() {
   const [tables, setTables] = useState<BanAn[]>([]);
+  const [promotions, setPromotions] = useState<KhuyenMai[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState('0 phút');
   const [filterStatus, setFilterStatus] = useState<'all' | 'empty' | 'occupied'>('all');
 
@@ -45,31 +49,53 @@ export default function CashierScreen() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // Load tables
+  // Load tables + promotions
   useEffect(() => {
     let isMounted = true;
-    coffeeApi
-      .getBanAn()
-      .then((data) => {
-        if (isMounted) {
-          setTables(data);
-          setErrorMessage('');
-        }
+
+    Promise.all([coffeeApi.getBanAn(), coffeeApi.getKhuyenMai?.() ?? Promise.resolve([])])
+      .then(([banAnData, kmData]) => {
+        if (!isMounted) return;
+        setTables(banAnData);
+        setPromotions(kmData as KhuyenMai[]);
+        setErrorMessage('');
+        setIsOffline(false);
+
+        // Đồng bộ xuống SQLite
+        database.syncBanAn(banAnData);
+        database.syncKhuyenMai(kmData);
       })
-      .catch((error) => {
-        if (isMounted) {
-          setErrorMessage(error instanceof Error ? error.message : 'Không tải được bàn ăn');
+      .catch(async () => {
+        if (!isMounted) return;
+        // Fallback sang SQLite
+        const [localBanAn, localKM] = await Promise.all([
+          database.getLocalBanAn(),
+          database.getLocalKhuyenMai(),
+        ]);
+
+        if (localBanAn && localBanAn.length > 0) {
+          const parsedTables = localBanAn.map((item) => ({
+            idBan: Number((item as any).maBan),
+            tenBan: (item as any).tenBan,
+            trangThai: Number((item as any).trangThai),
+            id: (item as any).id,
+          }));
+          setTables(parsedTables as BanAn[]);
+          setIsOffline(true);
+          setErrorMessage('');
+        } else {
+          setErrorMessage('Không tải được bàn ăn. Kiểm tra kết nối mạng.');
+        }
+
+        if (localKM && localKM.length > 0) {
+          setPromotions(localKM as unknown as KhuyenMai[]);
         }
       })
       .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       });
 
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   if (!user) {
@@ -94,7 +120,7 @@ export default function CashierScreen() {
     }
   };
 
-  const handleCompleteTable = async (idBan: number) => {
+  const handleCompleteTable = useCallback(async (idBan: number) => {
     try {
       await coffeeApi.updateTableStatus(idBan, 0);
       const updated = await coffeeApi.getBanAn();
@@ -102,7 +128,7 @@ export default function CashierScreen() {
     } catch (error) {
       Alert.alert('Lỗi', 'Không thể cập nhật trạng thái bàn');
     }
-  };
+  }, []);
 
   const filteredTables = displayedTables.filter(t => 
     filterStatus === 'all' || 
@@ -113,7 +139,21 @@ export default function CashierScreen() {
   return (
     <ScreenShell active="home">
       <BrandHeader />
-      
+
+      {/* Offline banner */}
+      {isOffline && (
+        <View style={{
+          flexDirection: 'row', alignItems: 'center', gap: 8,
+          backgroundColor: '#fffbea', borderWidth: 1, borderColor: '#fde68a',
+          borderRadius: 8, padding: 10, marginHorizontal: 20, marginTop: 12,
+        }}>
+          <Ionicons name="cloud-offline-outline" size={16} color="#b45309" />
+          <Text selectable style={{ fontSize: 12, color: '#b45309', fontWeight: '600', flex: 1 }}>
+            Offline — đang dùng cache ({promotions.length} KM · cập nhật khi có mạng)
+          </Text>
+        </View>
+      )}
+
       {/* Banner Thông tin nhân viên (Dữ liệu động) */}
       <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
         <View
@@ -123,7 +163,11 @@ export default function CashierScreen() {
             borderColor: '#e8e2d5',
             borderRadius: 12,
             padding: 16,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
             marginBottom: 20,
           }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>

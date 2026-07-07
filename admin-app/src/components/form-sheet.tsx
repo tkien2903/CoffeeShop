@@ -13,7 +13,7 @@ export function FormSheet({ visible, title, onClose, children }: FormSheetProps)
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.35)' }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View

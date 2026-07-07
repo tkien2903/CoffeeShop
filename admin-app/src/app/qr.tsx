@@ -70,7 +70,8 @@ export default function QrScreen() {
     }
 
     try {
-      const fileUri = FileSystem.documentDirectory + `QR_Ban_${table.idBan}.png`;
+      // @ts-ignore
+      const fileUri = (FileSystem.documentDirectory || '') + `QR_Ban_${table.idBan}.png`;
       const base64Code = base64Data.startsWith('data:') ? base64Data.split(',')[1] : base64Data;
       
       try {

@@ -93,6 +93,18 @@ export type LoaiMonAn = {
   moTa?: string;
 };
 
+export type KhuyenMai = {
+  _id?: string;
+  idKhuyenMai: number;
+  tenKM: string;
+  loaiKM: string;
+  giaTridonToiThieu: number;
+  ngayBatDau: string;
+  ngayKetThuc: string;
+  trangThai: number;
+  ghiChu?: string;
+};
+
 export type InventoryResponse = {
   tongNguyenLieu: number;
   nguyenLieuSapHet: number;
@@ -234,6 +246,10 @@ export const coffeeApi = {
 
   getLoaiMonAn() {
     return request<LoaiMonAn[]>('/api/mon-an/loai');
+  },
+
+  getKhuyenMai() {
+    return request<KhuyenMai[]>('/api/management/khuyen-mai');
   },
 
   createMonAn(payload: MonAnInput) {

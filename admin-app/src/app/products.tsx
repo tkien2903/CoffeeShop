@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import { PropsWithChildren, useCallback, useEffect, useMemo, memo, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { FormActions, FormField, FormInput, FormSheet } from '@/components/form-sheet';
@@ -8,6 +8,7 @@ import { BrandHeader, ProductImage, ScreenShell, palette } from '@/components/co
 import { API_BASE_URL, LoaiMonAn, MonAn, MonAnInput, coffeeApi } from '@/services/api';
 import { useFormDraft } from '@/hooks/use-form-draft';
 import { canAccess } from '@/services/session';
+import * as database from '@/services/database';
 
 const accents = ['#b60d28', '#ffbd28', '#ffcf52', '#5a1f18', '#d88933', '#bb4c2d'];
 
@@ -44,7 +45,45 @@ export default function ProductsScreen() {
       setProducts(productData);
       setCategories(categoryData);
       setErrorMessage('');
+
+      // Đồng bộ cả món ăn lẫn danh mục xuống SQLite
+      database.syncMonAn(productData);
+      database.syncLoaiMonAn(categoryData);
     } catch (error) {
+      // Fallback to offline data
+      try {
+        const [localMonAn, localLoai] = await Promise.all([
+          database.getLocalMonAn(),
+          database.getLocalLoaiMonAn(),
+        ]);
+
+        if (localMonAn && localMonAn.length > 0) {
+          const parsedProducts = localMonAn.map(item => ({
+            _id: (item as any).id,
+            idMon: Number((item as any).maMonAn) || 0,
+            tenMon: (item as any).tenMonAn,
+            idLoai: Number((item as any).danhMuc) || 0,
+            gia: Number((item as any).gia) || 0,
+            image: (item as any).hinhAnh,
+            soLuongTon: 0,
+            mucCanhBao: 0,
+          }));
+          setProducts(parsedProducts as MonAn[]);
+
+          if (localLoai && localLoai.length > 0) {
+            const parsedCategories = localLoai.map(item => ({
+              idLoai: Number((item as any).idLoai),
+              tenLoai: (item as any).tenLoai,
+              moTa: (item as any).moTa,
+            }));
+            setCategories(parsedCategories as LoaiMonAn[]);
+          }
+
+          setErrorMessage('Đang sử dụng dữ liệu offline (chưa thể tải mới)');
+          return;
+        }
+      } catch (e) {}
+
       setErrorMessage(error instanceof Error ? error.message : 'Không tải được danh sách sản phẩm');
     } finally {
       setIsLoading(false);
@@ -167,7 +206,7 @@ export default function ProductsScreen() {
         </View>
       ) : null}
 
-      <View style={{ paddingHorizontal: 22, paddingTop: 9 }}>
+      <View style={{ paddingHorizontal: 22, paddingTop: 9, flex: 1 }}>
         {isLoading ? (
           <StatusText>Đang tải sản phẩm từ {API_BASE_URL}...</StatusText>
         ) : errorMessage ? (
@@ -175,15 +214,22 @@ export default function ProductsScreen() {
         ) : visibleProducts.length === 0 ? (
           <StatusText>Không có sản phẩm trong danh mục này.</StatusText>
         ) : (
-          visibleProducts.map((item, index) => (
-            <ProductRow
-              key={item._id ?? item.idMon}
-              item={item}
-              categoryName={categoryMap.get(item.idLoai) ?? `Loại #${item.idLoai}`}
-              accent={accents[index % accents.length]}
-              onPress={() => canManage && setSelected(item)}
-            />
-          ))
+          <FlatList
+            data={visibleProducts}
+            keyExtractor={(item) => item._id ?? String(item.idMon)}
+            windowSize={5}
+            maxToRenderPerBatch={10}
+            initialNumToRender={10}
+            removeClippedSubviews
+            renderItem={({ item, index }) => (
+              <ProductRow
+                item={item}
+                categoryName={categoryMap.get(item.idLoai) ?? `Loại #${item.idLoai}`}
+                accent={accents[index % accents.length]}
+                onPress={() => canManage && setSelected(item)}
+              />
+            )}
+          />
         )}
       </View>
 
@@ -304,7 +350,8 @@ function ProductForm({
   );
 }
 
-function ProductRow({
+// Wrapped in memo so it only re-renders when its own props change
+const ProductRow = memo(function ProductRow({
   item,
   categoryName,
   accent,
@@ -357,7 +404,7 @@ function ProductRow({
       </View>
     </Pressable>
   );
-}
+});
 
 function StatusText({ children, tone = 'default' }: PropsWithChildren<{ tone?: 'default' | 'error' }>) {
   return (

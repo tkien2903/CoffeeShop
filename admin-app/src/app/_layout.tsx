@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 
 import { hydrateSession, homeRouteFor } from '@/services/session';
+import { initDB } from '@/services/database';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -11,11 +12,14 @@ export default function TabLayout() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    hydrateSession().then((user) => {
-      setReady(true);
-      if (user && segments[0] === 'index') {
-        router.replace(homeRouteFor(user));
-      }
+    // Khởi tạo SQLite DB (phải await để đảm bảo DB sẵn sàng trước khi điều hướng)
+    initDB().then(() => {
+      hydrateSession().then((user) => {
+        setReady(true);
+        if (user && (segments[0] as string) === 'index') {
+          router.replace(homeRouteFor(user));
+        }
+      });
     });
   }, []);
 
@@ -42,6 +46,7 @@ export default function TabLayout() {
         <Stack.Screen name="reports" />
         <Stack.Screen name="inventory" />
         <Stack.Screen name="history" />
+        <Stack.Screen name="media" />
       </Stack>
     </ThemeProvider>
   );
