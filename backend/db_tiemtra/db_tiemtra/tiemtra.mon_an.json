@@ -142,5 +142,136 @@
     "TenMon": "San Tuyết Choco",
     "idLoai": 3,
     "Gia": 39000
-  }
+  },
+ {
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc0"
+  },
+  "idMon": 17,
+  "TenMon": "San Tuyết Latte",
+  "idLoai": 3,
+  "Gia": 42000
+  },
+ {
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc6"
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc7"
+  },
+  "idMon": 24,
+  "TenMon": "Matcha Mochi",
+  "idLoai": 4,
+  "Gia": 49000
+  },
+  {
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc7"
+  },
+  "idMon": 24,
+  "TenMon": "Matcha Mochi",
+  "idLoai": 4,
+  "Gia": 49000
+    },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc8"
+  },
+  "idMon": 25,
+  "TenMon": "Matcha Hạnh Nhân",
+  "idLoai": 4,
+  "Gia": 49000
+},
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fc9"
+  },
+  "idMon": 26,
+  "TenMon": "Matcha Latte",
+  "idLoai": 4,
+  "Gia": 45000
+},
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fca"
+  },
+  "idMon": 27,
+  "TenMon": "Matcha TC Hoàng Kim",
+  "idLoai": 4,
+  "Gia": 45000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fcb"
+  },
+  "idMon": 28,
+  "TenMon": "Prappe Matcha",
+  "idLoai": 4,
+  "Gia": 49000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fcc"
+  },
+  "idMon": 29,
+  "TenMon": "Mochi Choco",
+  "idLoai": 5,
+  "Gia": 35000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fcd"
+  },
+  "idMon": 30,
+  "TenMon": "Su Kem Hạnh Nhân",
+  "idLoai": 5,
+  "Gia": 29000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fce"
+  },
+  "idMon": 31,
+  "TenMon": "Tiramisu Mousse",
+  "idLoai": 5,
+  "Gia": 42000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fcf"
+  },
+  "idMon": 32,
+  "TenMon": "Mousse Gấu",
+  "idLoai": 5,
+  "Gia": 45000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fd0"
+  },
+  "idMon": 33,
+  "TenMon": "Cheese Cake",
+  "idLoai": 5,
+  "Gia": 45000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fe7"
+  },
+  "idMon": 56,
+  "TenMon": "Khoai Môn Nghiền",
+  "idLoai": 7,
+  "Gia": 10000
+  },
+{
+  "_id": {
+    "$oid": "6976ff36bc36e088a3d97fe8"
+  },
+  "idMon": 57,
+  "TenMon": "Phô Mai Ngọt",
+  "idLoai": 7,
+  "Gia": 5000
+}
+  }]
 ]
