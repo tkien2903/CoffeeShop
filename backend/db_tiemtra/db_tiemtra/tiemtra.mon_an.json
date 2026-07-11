@@ -272,5 +272,14 @@
   "TenMon": "Phô Mai Ngọt",
   "idLoai": 7,
   "Gia": 5000
-}
-  }]
+},
+{
+  "_id": {
+    "$oid": "6a2a5d7d6c8287ddff5923b5"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a2a5e396c8287ddff5923b6"
+  }
+}]
