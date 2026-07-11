@@ -143,22 +143,22 @@
     "idLoai": 3,
     "Gia": 39000
   },
- {
-  "_id": {
-    "$oid": "6976ff36bc36e088a3d97fc0"
+  {
+    "_id": {
+      "$oid": "6976ff36bc36e088a3d97fc0"
+   },
+   "idMon": 17,
+   "TenMon": "San Tuyết Latte",
+   "idLoai": 3,
+   "Gia": 42000
   },
-  "idMon": 17,
-  "TenMon": "San Tuyết Latte",
-  "idLoai": 3,
-  "Gia": 42000
+  {
+   "_id": {
+     "$oid": "6976ff36bc36e088a3d97fc6"
   },
- {
-  "_id": {
-    "$oid": "6976ff36bc36e088a3d97fc6"
-  },
-{
-  "_id": {
-    "$oid": "6976ff36bc36e088a3d97fc7"
+  {
+   "_id": {
+     "$oid": "6976ff36bc36e088a3d97fc7"
   },
   "idMon": 24,
   "TenMon": "Matcha Mochi",
@@ -173,8 +173,8 @@
   "TenMon": "Matcha Mochi",
   "idLoai": 4,
   "Gia": 49000
-    },
-{
+  },
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fc8"
   },
@@ -182,8 +182,8 @@
   "TenMon": "Matcha Hạnh Nhân",
   "idLoai": 4,
   "Gia": 49000
-},
-{
+  },
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fc9"
   },
@@ -191,8 +191,8 @@
   "TenMon": "Matcha Latte",
   "idLoai": 4,
   "Gia": 45000
-},
-{
+  },
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fca"
   },
@@ -201,7 +201,7 @@
   "idLoai": 4,
   "Gia": 45000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fcb"
   },
@@ -210,7 +210,7 @@
   "idLoai": 4,
   "Gia": 49000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fcc"
   },
@@ -219,7 +219,7 @@
   "idLoai": 5,
   "Gia": 35000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fcd"
   },
@@ -228,7 +228,7 @@
   "idLoai": 5,
   "Gia": 29000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fce"
   },
@@ -237,7 +237,7 @@
   "idLoai": 5,
   "Gia": 42000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fcf"
   },
@@ -246,7 +246,7 @@
   "idLoai": 5,
   "Gia": 45000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fd0"
   },
@@ -255,7 +255,7 @@
   "idLoai": 5,
   "Gia": 45000
   },
-{
+  {
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fe7"
   },
@@ -264,7 +264,7 @@
   "idLoai": 7,
   "Gia": 10000
   },
-{
+  {  
   "_id": {
     "$oid": "6976ff36bc36e088a3d97fe8"
   },
@@ -272,13 +272,13 @@
   "TenMon": "Phô Mai Ngọt",
   "idLoai": 7,
   "Gia": 5000
-},
-{
+  },
+  {
   "_id": {
     "$oid": "6a2a5d7d6c8287ddff5923b5"
   }
-},
-{
+  },
+  {
   "_id": {
     "$oid": "6a2a5e396c8287ddff5923b6"
   }
